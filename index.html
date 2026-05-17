@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 5월 공동구매 일정</title>
+<title>공구모아 — 공동구매 일정 모아보기</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -152,10 +152,10 @@ tr.ended{background:#faf9f7}
 .day-item-inf{font-size:11px;color:var(--ink3);white-space:nowrap;display:flex;align-items:center;gap:3px}
 
 /* 배너 */
-.banner-slide{flex:0 0 100%;display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;min-height:64px;text-decoration:none;position:relative;border-radius:var(--radius);cursor:pointer;transition:opacity .15s}
-.banner-slide:hover{opacity:.92}
-.banner-msg{font-size:14px;font-weight:600;color:var(--ink);flex:1;line-height:1.4}
-.banner-cta{font-size:12px;font-weight:500;color:var(--ink2);white-space:nowrap;margin-left:12px;text-decoration:underline;flex-shrink:0}
+.banner-slide{flex:0 0 100%;display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;min-height:70px;text-decoration:none;position:relative;border-radius:var(--radius);cursor:pointer;transition:opacity .15s}
+.banner-slide:hover{opacity:.9}
+.banner-msg{font-size:14px;font-weight:600;color:#fff;flex:1;line-height:1.4}
+.banner-cta{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;margin-left:12px;flex-shrink:0}
 .banner-dot-item{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0}
 .banner-dot-item.on{background:var(--navy);width:14px;border-radius:3px}
 @media(max-width:640px){
@@ -496,14 +496,14 @@ var BANNER_SHEET_ID = '1tWGFkWJrVxxu8ezJ9qRqCzMNxZoLgaDI8tiWUV8Rb78';
 var BANNER_GID = '902874268';
 var bannerList = [], bannerIdx = 0, bannerTimer = null, bannerTouchX = 0;
 
-// 배너 색상 팔레트 (튀지 않는 톤)
+// 배너 색상 팔레트 (그린/버건디/퍼플)
 var BANNER_COLORS = [
-  {bg:'#EEF2F7', border:'#D0DAE8', text:'#2d3a5a'},
-  {bg:'#F0F5EE', border:'#C8DCC4', text:'#2a4a28'},
-  {bg:'#F5F0EE', border:'#DDD0C8', text:'#4a2a2a'},
-  {bg:'#EEF0F5', border:'#C8CCD8', text:'#2a2e4a'},
-  {bg:'#F5EEF5', border:'#D8C8D8', text:'#4a2a4a'},
-  {bg:'#F5F3EE', border:'#D8D0C0', text:'#4a3a1a'},
+  {bg:'#2A5A4A', border:'#1a3a2a', text:'#ffffff'},
+  {bg:'#722F37', border:'#521f27', text:'#ffffff'},
+  {bg:'#5B3A8A', border:'#3b1a6a', text:'#ffffff'},
+  {bg:'#2A5A4A', border:'#1a3a2a', text:'#ffffff'},
+  {bg:'#722F37', border:'#521f27', text:'#ffffff'},
+  {bg:'#5B3A8A', border:'#3b1a6a', text:'#ffffff'},
 ];
 
 function buildBanners(list) {
@@ -524,8 +524,8 @@ function buildBanners(list) {
     a.style.background = col.bg;
     a.style.border = '1px solid ' + col.border;
     a.innerHTML = '<div class="banner-msg" style="color:'+col.text+'">'+b.msg+'</div>'
-      + '<div class="banner-cta" style="color:'+col.text+'">자세히 보기 &#8594;</div>'
-      + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(0,0,0,.25);background:rgba(0,0,0,.07);border-radius:3px;padding:1px 4px">AD</span>';
+      + '<div class="banner-cta" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 12px;text-decoration:none;font-size:12px;font-weight:600">바로 구매 &#8594;</div>'
+      + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.2);border-radius:3px;padding:1px 4px">AD</span>';
     track.appendChild(a);
 
     var dot = document.createElement('button');
@@ -589,13 +589,16 @@ function loadBannerSheet() {
         function toDate(s) {
           if (!s) return null;
           var m = s.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
-          if (m) { var d = new Date(+m[1], +m[2]-1, +m[3]); d.setHours(0,0,0,0); return d; }
+          if (m) {
+            var d = new Date(+m[1], +m[2]-1, +m[3], 10, 0, 0); // 오전 10시 기준
+            return d;
+          }
           return null;
         }
+        var now = new Date(); // 현재 시각
         var start = toDate(startStr);
         var end   = toDate(endStr);
-        // 날짜 없으면 항상 표시
-        if ((!start || start.getTime() <= todayTs) && (!end || end.getTime() >= todayTs)) {
+        if ((!start || now >= start) && (!end || now < end)) {
           active.push({ msg: get(iMsg), url: get(iUrl) });
         }
       });
