@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 공동구매 일정 모아보기</title>
+<title>공구모아 — 5월 공동구매 일정</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -11,7 +11,36 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-BBSL0JLGEH');
+  gtag('config', 'G-BBSL0JLGEH', {
+    page_title: '공구모아 홈',
+    page_location: window.location.href
+  });
+
+  // 배너 클릭 이벤트 추적
+  function trackBannerClick(bannerMsg, bannerUrl) {
+    gtag('event', 'banner_click', {
+      event_category: '배너광고',
+      event_label: bannerMsg,
+      banner_url: bannerUrl
+    });
+  }
+
+  // 탭 전환 추적
+  function trackTabView(tabName) {
+    gtag('event', 'tab_view', {
+      event_category: '탭',
+      event_label: tabName
+    });
+  }
+
+  // 공구 클릭 추적
+  function trackDealClick(dealName, category) {
+    gtag('event', 'deal_click', {
+      event_category: '공구클릭',
+      event_label: dealName,
+      deal_category: category
+    });
+  }
 </script>
 <style>
 :root{--bg:#f5f3ef;--ink:#1c1a17;--ink2:#6b6457;--ink3:#b0a898;--border:#e8e3dc;--surface:#fff;--surface2:#f3efe9;--navy:#2d3a5a;--navy-dark:#1e2740;--accent:#e8450a;--accent-light:#fdf0eb;--pink:#e84578;--pink-light:#fdeef4;--blue:#2563eb;--radius:10px}
@@ -343,11 +372,13 @@ function setCat(v,el) {
   filters.cat=v;
   document.querySelectorAll('.cat-chip').forEach(function(c){c.classList.remove('on');});
   el.classList.add('on'); render();
+  if(typeof gtag==='function'&&v!=='전체') gtag('event','filter_view',{event_category:'대분류필터',event_label:v});
 }
 function setSub(v,el) {
   filters.sub=v;
   document.querySelectorAll('.sub-chip').forEach(function(c){c.classList.remove('on');});
   el.classList.add('on'); render();
+  if(typeof gtag==='function'&&v!=='전체') gtag('event','filter_view',{event_category:'소분류필터',event_label:v});
 }
 function toggleToday(el) {
   filters.today=!filters.today;
@@ -408,7 +439,12 @@ function render() {
   tb.innerHTML=html;
   var trs=tb.querySelectorAll('tr');
   for(var j=0;j<trs.length;j++) {
-    (function(row,item){row.onclick=function(){openModal(item);};})(trs[j],rows[j]);
+    (function(row,item){
+    row.onclick=function(){
+      openModal(item);
+      if(typeof trackDealClick==='function') trackDealClick(item.name, item.sub);
+    };
+  })(trs[j],rows[j]);
   }
 }
 function fmtISO(dt) {
@@ -478,8 +514,8 @@ function openModal(d) {
   if(iid){ib.href='https://www.instagram.com/'+iid;ib.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> @'+iid+' &#51064;&#49828;&#53440; &#48148;&#47196;&#44032;&#44592;';ib.style.display='flex';}
   else{ib.style.display='none';}
   var lk=document.getElementById('m-link');
-  if(d.url&&d.url!==''){lk.href=d.url;lk.textContent='&#44277;&#44396; &#54168;&#51060;&#51648; &#48148;&#47196;&#44032;&#44592; &#8594;';lk.classList.remove('disabled');}
-  else{lk.href='#';lk.textContent='&#47553;&#53356; &#50630;&#51020;';lk.classList.add('disabled');}
+  if(d.url&&d.url!==''){lk.href=d.url;lk.textContent='공구 페이지 바로가기 →';lk.style.display='block';lk.classList.remove('disabled');}
+  else{lk.style.display='none';}
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
@@ -489,6 +525,9 @@ function switchTab(v,btn){
   btn.classList.add('on');
   document.getElementById('v-'+v).classList.add('on');
   if(v==='cal')renderCal();
+  if(typeof gtag==='function'){
+    gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
+  }
 }
 
 // ── 배너 슬라이더 ──
@@ -526,6 +565,7 @@ function buildBanners(list) {
     a.innerHTML = '<div class="banner-msg" style="color:'+col.text+'">'+b.msg+'</div>'
       + '<div class="banner-cta" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 12px;text-decoration:none;font-size:12px;font-weight:600">바로 구매 &#8594;</div>'
       + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.2);border-radius:3px;padding:1px 4px">AD</span>';
+    (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
     track.appendChild(a);
 
     var dot = document.createElement('button');
@@ -583,21 +623,30 @@ function loadBannerSheet() {
       var active = [];
       rows.forEach(function(row){
         var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
+        var getRaw = function(idx){ return idx>-1&&row.c[idx]?row.c[idx].v:null; };
         var startStr = get(iStart);
         var endStr   = get(iEnd);
-        // "2026. 5. 13" 또는 "2026-05-13" 등 다양한 형식 처리
-        function toDate(s) {
-          if (!s) return null;
-          var m = s.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
-          if (m) {
-            var d = new Date(+m[1], +m[2]-1, +m[3], 10, 0, 0); // 오전 10시 기준
-            return d;
+        var startRaw = getRaw(iStart);
+        var endRaw   = getRaw(iEnd);
+
+        function toDate(raw, s, isEnd) {
+          var d = null;
+          // gviz Date(yyyy,m,d) 형식 — 월은 0부터 시작
+          var m0 = String(raw||'').match(/Date\((\d+),(\d+),(\d+)\)/);
+          if (m0) {
+            d = new Date(+m0[1], +m0[2], +m0[3], 10, 0, 0); // 월 그대로 (이미 0기준)
+          } else {
+            // "2026. 5. 18" 또는 "2026-05-18" 형식
+            var m1 = s.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
+            if (m1) d = new Date(+m1[1], +m1[2]-1, +m1[3], 10, 0, 0);
           }
-          return null;
+          if (!d) return null;
+          if (isEnd) d.setDate(d.getDate()+1); // 종료일은 익일
+          return d;
         }
-        var now = new Date(); // 현재 시각
-        var start = toDate(startStr);
-        var end   = toDate(endStr);
+        var now = new Date();
+        var start = toDate(startRaw, startStr, false);
+        var end   = toDate(endRaw, endStr, true);
         if ((!start || now >= start) && (!end || now < end)) {
           active.push({ msg: get(iMsg), url: get(iUrl) });
         }
