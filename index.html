@@ -150,6 +150,14 @@ tr.ended{background:#faf9f7}
 .day-item-tags{display:flex;gap:4px;flex-shrink:0}
 .day-item-name{font-size:13px;font-weight:500;flex:1}
 .day-item-inf{font-size:11px;color:var(--ink3);white-space:nowrap;display:flex;align-items:center;gap:3px}
+
+/* 배너 */
+.banner-slide{flex:0 0 100%;display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;min-height:64px;text-decoration:none;position:relative;border-radius:var(--radius);cursor:pointer;transition:opacity .15s}
+.banner-slide:hover{opacity:.92}
+.banner-msg{font-size:14px;font-weight:600;color:var(--ink);flex:1;line-height:1.4}
+.banner-cta{font-size:12px;font-weight:500;color:var(--ink2);white-space:nowrap;margin-left:12px;text-decoration:underline;flex-shrink:0}
+.banner-dot-item{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0}
+.banner-dot-item.on{background:var(--navy);width:14px;border-radius:3px}
 @media(max-width:640px){
   main{padding:.75rem .75rem 4rem}
   header{padding:0 1rem;height:50px}
@@ -251,6 +259,14 @@ tr.ended{background:#faf9f7}
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       캘린더
     </button>
+  </div>
+
+  <!-- 배너 슬라이더 -->
+  <div id="bannerArea" style="display:none;margin-bottom:1rem">
+    <div style="overflow:hidden;border-radius:var(--radius);position:relative" id="bannerOuter">
+      <div id="bannerTrack" style="display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)"></div>
+    </div>
+    <div id="bannerDots" style="display:flex;justify-content:center;gap:5px;padding:6px 0"></div>
   </div>
 
   <div id="v-list" class="view on">
@@ -474,8 +490,185 @@ function switchTab(v,btn){
   document.getElementById('v-'+v).classList.add('on');
   if(v==='cal')renderCal();
 }
+
+// ── 배너 슬라이더 ──
+var BANNER_SHEET_ID = '1tWGFkWJrVxxu8ezJ9qRqCzMNxZoLgaDI8tiWUV8Rb78';
+var BANNER_GID = '902874268';
+var bannerList = [], bannerIdx = 0, bannerTimer = null, bannerTouchX = 0;
+
+// 배너 색상 팔레트 (튀지 않는 톤)
+var BANNER_COLORS = [
+  {bg:'#EEF2F7', border:'#D0DAE8', text:'#2d3a5a'},
+  {bg:'#F0F5EE', border:'#C8DCC4', text:'#2a4a28'},
+  {bg:'#F5F0EE', border:'#DDD0C8', text:'#4a2a2a'},
+  {bg:'#EEF0F5', border:'#C8CCD8', text:'#2a2e4a'},
+  {bg:'#F5EEF5', border:'#D8C8D8', text:'#4a2a4a'},
+  {bg:'#F5F3EE', border:'#D8D0C0', text:'#4a3a1a'},
+];
+
+function buildBanners(list) {
+  var track = document.getElementById('bannerTrack');
+  var dots  = document.getElementById('bannerDots');
+  var area  = document.getElementById('bannerArea');
+  if (!list.length) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
+  track.innerHTML = ''; dots.innerHTML = '';
+
+  list.forEach(function(b, i) {
+    var col = BANNER_COLORS[i % BANNER_COLORS.length];
+    var a = document.createElement('a');
+    a.className = 'banner-slide';
+    a.href = b.url || '#';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.background = col.bg;
+    a.style.border = '1px solid ' + col.border;
+    a.innerHTML = '<div class="banner-msg" style="color:'+col.text+'">'+b.msg+'</div>'
+      + '<div class="banner-cta" style="color:'+col.text+'">자세히 보기 &#8594;</div>'
+      + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(0,0,0,.25);background:rgba(0,0,0,.07);border-radius:3px;padding:1px 4px">AD</span>';
+    track.appendChild(a);
+
+    var dot = document.createElement('button');
+    dot.className = 'banner-dot-item' + (i===0?' on':'');
+    (function(idx){ dot.onclick = function(){ bannerGoTo(idx); }; })(i);
+    dots.appendChild(dot);
+  });
+
+  // 스와이프
+  var outer = document.getElementById('bannerOuter');
+  outer.addEventListener('touchstart', function(e){ bannerTouchX = e.touches[0].clientX; }, {passive:true});
+  outer.addEventListener('touchend', function(e){
+    var diff = bannerTouchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) { if (diff > 0) bannerNext(); else bannerPrev(); }
+  }, {passive:true});
+  var md = false, mx = 0;
+  outer.addEventListener('mousedown', function(e){ md=true; mx=e.clientX; bannerTouchX=e.clientX; });
+  outer.addEventListener('mouseup', function(e){
+    if(!md) return; md=false;
+    var diff = mx - e.clientX;
+    if(Math.abs(diff)>40){ if(diff>0) bannerNext(); else bannerPrev(); }
+  });
+
+  bannerGoTo(0);
+}
+
+function bannerGoTo(i) {
+  bannerIdx = (i + bannerList.length) % bannerList.length;
+  document.getElementById('bannerTrack').style.transform = 'translateX(-'+(bannerIdx*100)+'%)';
+  document.querySelectorAll('.banner-dot-item').forEach(function(d,j){ d.classList.toggle('on', j===bannerIdx); });
+  clearInterval(bannerTimer);
+  if (bannerList.length > 1) bannerTimer = setInterval(bannerNext, 4000);
+}
+function bannerNext(){ bannerGoTo(bannerIdx+1); }
+function bannerPrev(){ bannerGoTo(bannerIdx-1); }
+
+function loadBannerSheet() {
+  if (!BANNER_SHEET_ID) return;
+  var todayStr = TODAY.getFullYear()+'-'+(''+(TODAY.getMonth()+1)).padStart(2,'0')+'-'+(''+(TODAY.getDate())).padStart(2,'0');
+  var url = 'https://docs.google.com/spreadsheets/d/'+BANNER_SHEET_ID+'/gviz/tq?tqx=out:json&gid='+BANNER_GID;
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      var rows = json.table.rows;
+      var cols = json.table.cols.map(function(c){ return c.label; });
+      var iMsg=-1, iUrl=-1, iStart=-1, iEnd=-1;
+      cols.forEach(function(c,i){
+        if(c.indexOf('멘트')>-1||c.indexOf('문구')>-1) iMsg=i;
+        else if(c.indexOf('링크')>-1||c.indexOf('URL')>-1) iUrl=i;
+        else if(c.indexOf('시작')>-1) iStart=i;
+        else if(c.indexOf('종료')>-1||c.indexOf('마감')>-1) iEnd=i;
+      });
+      var active = [];
+      rows.forEach(function(row){
+        var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
+        var start = get(iStart).replace(/\//g,'-').substring(0,10);
+        var end   = get(iEnd).replace(/\//g,'-').substring(0,10);
+        if (start && end && start <= todayStr && todayStr <= end) {
+          active.push({ msg: get(iMsg), url: get(iUrl) });
+        }
+      });
+      // 랜덤 섞기
+      for(var i=active.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=active[i]; active[i]=active[j]; active[j]=t; }
+      bannerList = active;
+      buildBanners(bannerList);
+    })
+    .catch(function(){ });
+}
+
+loadBannerSheet();
+var FORM_SHEET_ID = '1o95J316riKjHtHC2d_4qI7Qj3qYc5ezbLaonGtm2aL8';
+var FORM_GID = '1388619433';
+
+function parseFormDate(val) {
+  if (!val) return '';
+  // "2026/06/01" 또는 "2026-06-01" 형식
+  var m = String(val).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if (m) return m[1]+'-'+(m[2].length===1?'0':'')+m[2]+'-'+(m[3].length===1?'0':'')+m[3];
+  // "6월 1일" 형식
+  var m2 = String(val).match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if (m2) return '2026-'+(m2[1].length===1?'0':'')+m2[1]+'-'+(m2[2].length===1?'0':'')+m2[2];
+  return '';
+}
+
+function loadFormData() {
+  var url = 'https://docs.google.com/spreadsheets/d/'+FORM_SHEET_ID+'/gviz/tq?tqx=out:json&gid='+FORM_GID;
+  fetch(url)
+    .then(function(r){return r.text();})
+    .then(function(text){
+      var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      var rows = json.table.rows;
+      var cols = json.table.cols.map(function(c){return c.label;});
+
+      // 컬럼 인덱스 찾기
+      // 폼 컬럼: 타임스탬프, 대분류, 소분류, 오픈날짜, 마감날짜, 공구제품명, 인플루언서이름, 인스타그램아이디
+      var idxCat=-1, idxSub=-1, idxStart=-1, idxEnd=-1, idxName=-1, idxInf=-1, idxInsta=-1;
+      cols.forEach(function(c,i){
+        if(c.indexOf('대분류')>-1) idxCat=i;
+        else if(c.indexOf('소분류')>-1) idxSub=i;
+        else if(c.indexOf('오픈')>-1||c.indexOf('시작')>-1) idxStart=i;
+        else if(c.indexOf('마감')>-1||c.indexOf('종료')>-1) idxEnd=i;
+        else if(c.indexOf('제품명')>-1||c.indexOf('품목')>-1) idxName=i;
+        else if(c.indexOf('인플루언서')>-1) idxInf=i;
+        else if(c.indexOf('인스타')>-1) idxInsta=i;
+      });
+
+      var formItems = [];
+      rows.forEach(function(row, ri){
+        var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
+        var name = get(idxName);
+        if(!name) return;
+        formItems.push({
+          id: 'form_'+ri,
+          cat: get(idxCat)||'성인',
+          sub: get(idxSub)||'기타',
+          date: parseFormDate(get(idxStart)),
+          end_date: parseFormDate(get(idxEnd)),
+          name: name,
+          inf: get(idxInf),
+          insta: get(idxInsta).replace('@',''),
+          url: '',
+          source: 'form'
+        });
+      });
+
+      if(formItems.length > 0) {
+        // 기존 form 데이터 제거 후 새로 추가
+        DATA = DATA.filter(function(d){return d.source !== 'form';});
+        DATA = DATA.concat(formItems);
+        document.getElementById('updatedAt').textContent = '최신 데이터 (폼 '+formItems.length+'건 포함)';
+        render(); renderCal();
+        console.log('구글 폼 데이터 '+formItems.length+'건 로드 완료');
+      }
+    })
+    .catch(function(e){
+      console.log('폼 데이터 로드 실패:', e);
+    });
+}
+
 render();
 renderCal();
+loadFormData();
 
 </script>
 </body>
