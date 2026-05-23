@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 공구일정 핫딜정보 모음</title>
+<title>공구모아 — 공구 정보&핫딜 공유</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -192,6 +192,9 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .pick-date{font-size:11px;color:var(--ink3);white-space:nowrap;flex-shrink:0}
 .pick-arrow{color:var(--ink3);flex-shrink:0}
 .pick-empty{text-align:center;padding:4rem 2rem;color:var(--ink3)}
+.pick-badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;margin-right:5px;vertical-align:middle}
+.pick-badge.hot{background:#fef2f2;color:#dc2626}
+.pick-badge.qa{background:#eff6ff;color:#1d4ed8}
 .pick-empty .icon{font-size:32px;margin-bottom:.5rem}
 .day-item:last-child{border-bottom:none}
 .day-item:hover{opacity:.75}
@@ -912,7 +915,8 @@ function loadPickData() {
           name: name,
           url:  get(iUrl),
           date: itemDate,
-          memo: get(iMemo)
+          memo: get(iMemo),
+          cat:  get(iCat)
         });
       });
 
@@ -927,12 +931,12 @@ function renderPickList(items) {
     el.innerHTML = '<div class="pick-empty"><div class="icon">&#11088;</div>현재 등록된 추천 공구가 없어요</div>';
     return;
   }
-  var html = '<div class="pick-header">&#11088; 지금 바로 구매 가능한 추천 공구예요!</div>';
+  var html = '<div class="pick-header"><strong>💬 DM 질문 & 오늘의 핫딜 모음</strong><br><span style="font-weight:400">팔로워 질문에 답한 상품과 오늘의 핫딜을 모았어요. 클릭하면 바로 구매 페이지로 이동해요 🛍</span></div>';
   items.forEach(function(d){
     var ds = d.date ? (d.date.getMonth()+1)+'/'+(d.date.getDate()) : '';
     html += '<a class="pick-item" href="'+(d.url||'#')+'" target="_blank" rel="noopener">'
       +'<div class="pick-body">'
-      +'<div class="pick-name">'+d.name+'</div>'
+      +'<div class="pick-name">'+(d.cat==='핫딜'?'<span class="pick-badge hot">🔥 핫딜</span>':d.cat==='질문답변'?'<span class="pick-badge qa">💬 질문답변</span>':'')+d.name+'</div>'
       +(d.memo?'<div class="pick-memo">'+d.memo+'</div>':'')
       +'</div>'
       +(ds?'<div class="pick-date">'+ds+'</div>':'')
