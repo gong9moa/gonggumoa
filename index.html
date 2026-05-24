@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 공구정보&핫딜 모음</title>
+<title>공구모아 — 공구일정&핫딜정보</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -829,10 +829,14 @@ function loadFormData() {
       });
 
       var formItems = [];
+      var formSeen = {};
       rows.forEach(function(row, ri){
         var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
         var name = get(idxName);
         if(!name) return;
+        var fkey = name+(get(idxStart)||'');
+        if(formSeen[fkey]) return;
+        formSeen[fkey]=true;
         formItems.push({
           id: 'form_'+ri,
           cat: get(idxCat)||'성인',
@@ -861,6 +865,21 @@ function loadFormData() {
     });
 }
 
+// 한달 이상 지난 공구 제거
+var oneMonthAgo = new Date(TODAY); oneMonthAgo.setMonth(oneMonthAgo.getMonth()-1);
+DATA = DATA.filter(function(d){
+  var dt=pd(d.date); if(!dt) return true;
+  return dt>=oneMonthAgo;
+});
+// DATA 중복 제거 (이름+날짜 기준)
+(function(){
+  var seen={}, deduped=[];
+  DATA.forEach(function(d){
+    var k=(d.name||'')+(d.date||'');
+    if(!seen[k]){seen[k]=true;deduped.push(d);}
+  });
+  DATA=deduped;
+})();
 render();
 renderCal();
 loadFormData();
@@ -870,7 +889,7 @@ loadVipList();
 var PICK_SHEET_ID = '1cA9bkFiRhFrUUlmfpxXOdeHTk9JsBzwA5yXTq7GlZ0U';
 
 function loadPickData() {
-  var url = 'https://docs.google.com/spreadsheets/d/'+PICK_SHEET_ID+'/gviz/tq?tqx=out:json';
+  var url = 'https://docs.google.com/spreadsheets/d/'+PICK_SHEET_ID+'/gviz/tq?tqx=out:json&gid=0';
   fetch(url)
     .then(function(r){ return r.text(); })
     .then(function(text){
@@ -878,21 +897,25 @@ function loadPickData() {
       var rows = json.table.rows;
       var cols = json.table.cols.map(function(c){ return c.label; });
 
-      var iName=-1, iUrl=-1, iDate=-1, iMemo=-1;
+      var iName=-1, iUrl=-1, iDate=-1, iMemo=-1, iCat=-1;
       cols.forEach(function(c,i){
         if(c.indexOf('상품명')>-1||c.indexOf('상품')>-1) iName=i;
         else if(c.indexOf('링크')>-1||c.indexOf('URL')>-1) iUrl=i;
         else if(c.indexOf('날짜')>-1||c.indexOf('일자')>-1) iDate=i;
         else if(c.indexOf('메모')>-1||c.indexOf('설명')>-1) iMemo=i;
+        else if(c.indexOf('카테고리')>-1||c.indexOf('분류')>-1) iCat=i;
       });
 
       var now = new Date(); now.setHours(0,0,0,0);
       var items = [];
+      var seen = {}; // 중복 제거용
       rows.forEach(function(row){
         var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
         var getRaw = function(idx){ return idx>-1&&row.c[idx]?row.c[idx].v:null; };
         var name = get(iName);
         if(!name) return;
+        if(seen[name]) return; // 중복 제거
+        seen[name] = true;
 
         // 날짜 파싱
         var dateRaw = getRaw(iDate);
@@ -908,7 +931,7 @@ function loadPickData() {
         // 날짜 기준 2일 후까지만 표시
         if(itemDate) {
           var cutoff = new Date(itemDate); cutoff.setDate(cutoff.getDate()+2);
-          if(now > cutoff) return; // 2일 지나면 제거
+          if(now > cutoff) return;
         }
 
         items.push({
@@ -922,7 +945,11 @@ function loadPickData() {
 
       renderPickList(items);
     })
-    .catch(function(e){ console.log('추천 데이터 로드 실패:', e); });
+    .catch(function(e){
+      console.log('추천 데이터 로드 실패:', e);
+      var el=document.getElementById('pick-list');
+      if(el) el.innerHTML='<div class="pick-empty"><div class="icon">&#128722;</div>데이터를 불러오는 중이에요. 잠시 후 다시 시도해주세요.</div>';
+    });
 }
 
 function renderPickList(items) {
