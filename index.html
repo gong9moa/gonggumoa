@@ -967,7 +967,7 @@ function renderPickList(items) {
     el.innerHTML = '<div class="pick-empty"><div class="icon">&#11088;</div>현재 등록된 추천 공구가 없어요</div>';
     return;
   }
-  var html = '<div class="pick-header"><strong>💬 DM 질문 & 오늘의 핫딜 모음</strong><br><span style="font-weight:400">팔로워 질문에 답한 상품과 오늘의 핫딜을 모았어요. 클릭하면 바로 구매 페이지로 이동해요 🛍</span></div>';
+  var html = '<div class="pick-header"><strong>💬 카톡방/구글폼 질문 링크 & 오늘의 핫딜 모음</strong><br><span style="font-weight:400">팔로워 찾기 요청에 답한 상품과 오늘의 핫딜을 모았어요. 클릭하면 바로 구매 페이지로 이동해요 🛍</span></div>';
   items.forEach(function(d){
     var ds = d.date ? (d.date.getMonth()+1)+'/'+(d.date.getDate()) : '';
     html += '<a class="pick-item" href="'+(d.url||'#')+'" target="_blank" rel="noopener">'
