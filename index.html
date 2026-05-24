@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 공구일정&핫딜정보</title>
+<title>공구모아 — 공구 일정&핫딜 정보</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -832,6 +832,7 @@ function loadFormData() {
       var formSeen = {};
       rows.forEach(function(row, ri){
         var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
+        var getF = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].f||row.c[idx].v||'').trim():''; };
         var name = get(idxName);
         if(!name) return;
         var fkey = name+(get(idxStart)||'');
@@ -841,8 +842,8 @@ function loadFormData() {
           id: 'form_'+ri,
           cat: get(idxCat)||'성인',
           sub: get(idxSub)||'기타',
-          date: parseFormDate(get(idxStart)),
-          end_date: parseFormDate(get(idxEnd)),
+          date: parseFormDate(getF(idxStart)),
+          end_date: parseFormDate(getF(idxEnd)),
           name: name,
           inf: get(idxInf),
           insta: get(idxInsta).replace('@',''),
@@ -899,12 +900,14 @@ function loadPickData() {
 
       var iName=-1, iUrl=-1, iDate=-1, iMemo=-1, iCat=-1;
       cols.forEach(function(c,i){
-        if(c.indexOf('상품명')>-1||c.indexOf('상품')>-1) iName=i;
-        else if(c.indexOf('링크')>-1||c.indexOf('URL')>-1) iUrl=i;
-        else if(c.indexOf('날짜')>-1||c.indexOf('일자')>-1) iDate=i;
-        else if(c.indexOf('메모')>-1||c.indexOf('설명')>-1) iMemo=i;
-        else if(c.indexOf('카테고리')>-1||c.indexOf('분류')>-1) iCat=i;
+        var cl = c.trim();
+        if(cl==='상품명'||cl==='상품') iName=i;
+        else if(cl==='링크'||cl==='URL'||cl==='url') iUrl=i;
+        else if(cl==='날짜'||cl==='일자') iDate=i;
+        else if(cl==='메모'||cl==='설명') iMemo=i;
+        else if(cl==='카테고리'||cl==='분류') iCat=i;
       });
+      console.log('Pick 컬럼:', cols, '매핑:', iName, iUrl, iDate, iMemo, iCat);
 
       var now = new Date(); now.setHours(0,0,0,0);
       var items = [];
@@ -924,8 +927,14 @@ function loadPickData() {
         var m0 = String(dateRaw||'').match(/Date\((\d+),(\d+),(\d+)\)/);
         if(m0) { itemDate = new Date(+m0[1], +m0[2], +m0[3]); itemDate.setHours(0,0,0,0); }
         else {
+          // 연도 있는 형식: 2026-05-23
           var m1 = dateStr.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
           if(m1) { itemDate = new Date(+m1[1], +m1[2]-1, +m1[3]); itemDate.setHours(0,0,0,0); }
+          else {
+            // 연도 없는 형식: 5. 23 또는 5/23
+            var m2 = dateStr.match(/^(\d{1,2})[.\-\/\s]+(\d{1,2})$/);
+            if(m2) { itemDate = new Date(TODAY.getFullYear(), +m2[1]-1, +m2[2]); itemDate.setHours(0,0,0,0); }
+          }
         }
 
         // 날짜 기준 2일 후까지만 표시
