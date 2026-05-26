@@ -240,11 +240,6 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   .inquiry-btn{font-size:11px;padding:4px 9px}
   #v-cal{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
-
-/* 푸터 */
-.footer{background:var(--surface2);border-top:1px solid var(--border);padding:1.25rem 1.5rem;margin-top:2rem;text-align:center}
-.footer p{font-size:11px;color:var(--ink3);line-height:1.8}
-.footer a{color:var(--ink3);text-decoration:underline}
 </style>
 </head>
 <body>
@@ -465,6 +460,330 @@ function toggleActive(el) {
 // 강조 인플루언서 - 구글 시트에서 자동 로드
 var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l']; // 시트 로드 전 기본값
 
+function loadVipList() {
+  var url = 'https://docs.google.com/spreadsheets/d/1o95J316riKjHtHC2d_4qI7Qj3qYc5ezbLaonGtm2aL8/gviz/tq?tqx=out:json&gid=1388619433';
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      var rows = json.table.rows;
+      var cols = json.table.cols.map(function(c){ return c.label; });
+
+      // 강조 컬럼 인덱스 찾기
+      var iInsta=-1, iVip=-1;
+      cols.forEach(function(c,i){
+        if(c.indexOf('인스타그램')>-1||c.indexOf('인스타 아이디')>-1) iInsta=i;
+        if(c.indexOf('강조')>-1) iVip=i;
+      });
+
+      if(iInsta<0||iVip<0) return;
+
+      var vips = [];
+      rows.forEach(function(row){
+        var insta = row.c[iInsta]?String(row.c[iInsta].v||'').trim().replace('@',''):'';
+        var flag  = row.c[iVip]?String(row.c[iVip].v||'').trim().toUpperCase():'';
+        if(insta && flag==='Y' && vips.indexOf(insta.toLowerCase())<0) {
+          vips.push(insta.toLowerCase());
+        }
+      });
+
+      if(vips.length>0) {
+        VIP_INSTA = vips;
+        render(); // 강조 반영해서 다시 렌더
+      }
+    })
+    .catch(function(e){ console.log('VIP 목록 로드 실패:', e); });
+}
+
+function getFiltered() {
+  var q=document.getElementById('q').value.toLowerCase();
+  var res=DATA.filter(function(d) {
+    var dt=pd(d.date);
+    if(filters.today&&(!dt||dt.getTime()!==TODAY.getTime())) return false;
+    if(filters.active&&isEnded(d)) return false;
+    if(filters.todayEnd){
+      if(!dt) return false;
+      var end=new Date(dt); end.setDate(end.getDate()+3); end.setHours(0,0,0,0);
+      if(end.getTime()!==TODAY.getTime()) return false;
+    }
+    if(filters.cat!=='전체'&&d.cat!==filters.cat) return false;
+    if(filters.sub&&filters.sub!=='전체'&&d.sub!==filters.sub) return false;
+    if(q&&(d.name+' '+d.inf+' '+d.insta+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  // 대분류 → 소분류 → 날짜 순 (종료된 것은 항상 맨 뒤)
+  var catOrder = ['성인','육아'];
+  var subOrder = ['가전','건강','식품','뷰티','생활','패션','책','교육','교구','장난감','가구','여행','기타'];
+  return res.sort(function(a,b) {
+    var ae=isEnded(a), be=isEnded(b);
+    if(ae!==be) return ae?1:-1;
+    var ac=catOrder.indexOf(a.cat), bc=catOrder.indexOf(b.cat);
+    if(ac<0) ac=99; if(bc<0) bc=99;
+    if(ac!==bc) return ac-bc;
+    var as=subOrder.indexOf(a.sub), bs=subOrder.indexOf(b.sub);
+    if(as<0) as=99; if(bs<0) bs=99;
+    if(as!==bs) return as-bs;
+    return (a.date||'').localeCompare(b.date||'');
+  });
+}
+function render() {
+  var rows=getFiltered(), tb=document.getElementById('tbody');
+  var we=new Date(TODAY); we.setDate(we.getDate()+7);
+  document.getElementById('s-total').textContent=DATA.length;
+  document.getElementById('s-today').textContent=DATA.filter(function(d){var dt=pd(d.date);return dt&&dt.getTime()===TODAY.getTime();}).length;
+  // 오늘 마감 = 종료일(시작일+3일)이 오늘인 항목
+  document.getElementById('s-end').textContent=DATA.filter(function(d){
+    var dt=pd(d.date); if(!dt) return false;
+    var end=new Date(dt); end.setDate(end.getDate()+3); end.setHours(0,0,0,0);
+    return end.getTime()===TODAY.getTime();
+  }).length;
+  // 진행중 = 종료되지 않은 항목
+  document.getElementById('s-active').textContent=DATA.filter(function(d){return !isEnded(d);}).length;
+  if(!rows.length){tb.innerHTML='<tr><td><div class="no-data"><div class="icon">&#128269;</div>&#44160;&#49353; &#44208;&#44284;&#44032; &#50630;&#50612;&#50836;</div></td></tr>';return;}
+  var html='';
+  for(var i=0;i<rows.length;i++) {
+    var d=rows[i];
+    var dt=pd(d.date), ended=isEnded(d);
+    var dd=(!ended&&dt)?dday(dt):'';
+    var isT=dt&&dt.getTime()===TODAY.getTime();
+    var isS=dt&&!isT&&(dt-TODAY)/86400000<=3&&dt>=TODAY;
+    var ds=dt?(dt.getMonth()+1)+'/'+(dt.getDate()):(d.date||'—');
+    var iid=d.insta?d.insta.replace('@',''):'';
+    var isVip=VIP_INSTA.length>0&&iid&&VIP_INSTA.indexOf(iid.toLowerCase())>-1;
+    var ddh=ended?'<span class="dday-badge ended-badge">&#51333;&#47308;</span>'
+      :(dd?('<span class="dday-badge '+(isT?'today-badge':isS?'soon-badge':'')+'">'+(dd)+'</span>'):'');
+    var infh=iid?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'+(d.inf||'—'):(d.inf||'—');
+    var vipBadge=isVip?'<span class="vip-badge">&#11088;</span>':'';
+    html+='<tr data-idx="'+i+'" class="'+(ended?'ended':'')+(isVip?' vip-row':'')+'">'
+      +'<td><div class="card-row1">'
+      +'<span class="tag tag-'+(d.cat||'기타')+'">'+(d.cat||'—')+'</span>'
+      +(d.sub?'<span class="tag tag-'+d.sub+'">'+d.sub+'</span>':'')
+      +'<span class="card-date'+(isT?' today':isS?' soon':'')+'">&thinsp;'+ds+'</span>'+ddh
+      +'</div><div class="card-row2"><span class="item-name">'+(d.name||'—')+vipBadge+'</span>'
+      +'<span class="card-inf">'+infh+'</span></div></td></tr>';
+  }
+  tb.innerHTML=html;
+  var trs=tb.querySelectorAll('tr');
+  for(var j=0;j<trs.length;j++) {
+    (function(row,item){
+    row.onclick=function(){
+      openModal(item);
+      if(typeof trackDealClick==='function') trackDealClick(item.name, item.sub);
+    };
+  })(trs[j],rows[j]);
+  }
+}
+function fmtISO(dt) {
+  return dt.getFullYear()+'-'+(''+(dt.getMonth()+1)).padStart(2,'0')+'-'+(''+(dt.getDate())).padStart(2,'0');
+}
+function renderCal() {
+  var mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('calTitle').textContent=calY+'년 '+mn[calM];
+  var grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  ['일','월','화','수','목','금','토'].forEach(function(d){var el=document.createElement('div');el.className='cal-dow';el.textContent=d;grid.appendChild(el);});
+  var fd=new Date(calY,calM,1).getDay(), dim=new Date(calY,calM+1,0).getDate(), pd2=new Date(calY,calM,0).getDate();
+  for(var i=fd-1;i>=0;i--) grid.appendChild(mkCell(new Date(calY,calM-1,pd2-i),true));
+  for(var d2=1;d2<=dim;d2++) grid.appendChild(mkCell(new Date(calY,calM,d2),false));
+  var tail=(fd+dim)%7===0?0:7-(fd+dim)%7;
+  for(var d3=1;d3<=tail;d3++) grid.appendChild(mkCell(new Date(calY,calM+1,d3),true));
+}
+function mkCell(dt,other) {
+  var cell=document.createElement('div');
+  var dow=dt.getDay(), isT=dt.getTime()===TODAY.getTime();
+  cell.className='cal-cell'+(other?' other':'')+(isT?' today':'')+(dow===0?' sun':dow===6?' sat':'');
+  var dn=document.createElement('div');dn.className='cal-dn';dn.textContent=dt.getDate();cell.appendChild(dn);
+  var iso=fmtISO(dt);
+  var evts=DATA.filter(function(d){var dp=pd(d.date);return dp&&fmtISO(dp)===iso;});
+  evts.slice(0,3).forEach(function(d){
+    var ev=document.createElement('div');ev.className='cal-ev ev-'+(d.sub||'default');ev.textContent=d.name;
+    (function(item){ev.onclick=function(e){e.stopPropagation();openModal(item);};})(d);
+    cell.appendChild(ev);
+  });
+  if(evts.length>3){
+    var m=document.createElement('div');m.className='cal-ev ev-default';m.textContent='+'+(evts.length-3)+'개';
+    (function(arr,date){m.onclick=function(e){e.stopPropagation();openDayPopup(date,arr);};})(evts,dt);
+    cell.appendChild(m);
+  }
+  (function(arr,date){cell.onclick=function(){if(arr.length>0)openDayPopup(date,arr);};})(evts,dt);
+  return cell;
+}
+function calMove(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();}
+function calReset(){calY=TODAY.getFullYear();calM=TODAY.getMonth();renderCal();}
+function openDayPopup(dt,evts) {
+  var mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('day-title').textContent=mn[dt.getMonth()]+' '+dt.getDate()+'일 공구 ('+evts.length+'건)';
+  var html='';
+  for(var i=0;i<evts.length;i++) {
+    var d=evts[i], iid=d.insta?d.insta.replace('@',''):'';
+    html+='<div class="day-item" data-idx="'+i+'">'
+      +'<div class="day-item-tags"><span class="tag tag-'+(d.cat||'기타')+'" style="font-size:10px;padding:1px 5px">'+(d.cat||'')+'</span>'
+      +(d.sub?'<span class="tag tag-'+d.sub+'" style="font-size:10px;padding:1px 5px">'+d.sub+'</span>':'')
+      +'</div><div class="day-item-name">'+(d.name)+'</div>'
+      +'<div class="day-item-inf">'+(iid?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> ':'')+d.inf+'</div></div>';
+  }
+  document.getElementById('day-list').innerHTML=html;
+  var items=document.getElementById('day-list').querySelectorAll('.day-item');
+  for(var j=0;j<items.length;j++) {
+    (function(el,item){el.onclick=function(){closeDayModal();openModal(item);};})(items[j],evts[j]);
+  }
+  document.getElementById('dayModal').classList.add('open');
+}
+function closeDayModal(e){if(!e||e.target===document.getElementById('dayModal'))document.getElementById('dayModal').classList.remove('open');}
+function openModal(d) {
+  var dt=pd(d.date), dateStr=dt?(dt.getMonth()+1)+'월 '+dt.getDate()+'일':(d.date||'');
+  var iid=d.insta?d.insta.replace('@',''):'';
+  document.getElementById('m-tags').innerHTML='<span class="tag tag-'+(d.cat||'기타')+'">'+(d.cat||'')+'</span>'+(d.sub?'<span class="tag tag-'+d.sub+'">'+d.sub+'</span>':'');
+  document.getElementById('m-title').textContent=d.name;
+  document.getElementById('m-meta').innerHTML='<span style="font-size:13px;color:var(--ink2)">&#128197; '+dateStr+'&nbsp;&nbsp;&#183;&nbsp;&nbsp;&#128100; '+(d.inf||'—')+'</span>';
+  var ib=document.getElementById('m-insta');
+  if(iid){ib.href='https://www.instagram.com/'+iid;ib.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> @'+iid+' &#51064;&#49828;&#53440; &#48148;&#47196;&#44032;&#44592;';ib.style.display='flex';}
+  else{ib.style.display='none';}
+  var lk=document.getElementById('m-link');
+  if(d.url&&d.url!==''){lk.href=d.url;lk.textContent='공구 페이지 바로가기 →';lk.style.display='block';lk.classList.remove('disabled');}
+  else{lk.style.display='none';}
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
+function switchTab(v,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.querySelectorAll('.view').forEach(function(el){el.classList.remove('on');});
+  btn.classList.add('on');
+  document.getElementById('v-'+v).classList.add('on');
+  if(v==='cal')renderCal();
+  if(typeof gtag==='function'){
+    gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
+  }
+}
+
+// ── 배너 슬라이더 ──
+var BANNER_SHEET_ID = '1tWGFkWJrVxxu8ezJ9qRqCzMNxZoLgaDI8tiWUV8Rb78';
+var BANNER_GID = '902874268';
+var bannerList = [], bannerIdx = 0, bannerTimer = null, bannerTouchX = 0;
+
+// 배너 색상 팔레트 (그린/버건디/퍼플)
+var BANNER_COLORS = [
+  {bg:'#2A5A4A', border:'#1a3a2a', text:'#ffffff'},
+  {bg:'#722F37', border:'#521f27', text:'#ffffff'},
+  {bg:'#5B3A8A', border:'#3b1a6a', text:'#ffffff'},
+  {bg:'#2A5A4A', border:'#1a3a2a', text:'#ffffff'},
+  {bg:'#722F37', border:'#521f27', text:'#ffffff'},
+  {bg:'#5B3A8A', border:'#3b1a6a', text:'#ffffff'},
+];
+
+function buildBanners(list) {
+  var track = document.getElementById('bannerTrack');
+  var dots  = document.getElementById('bannerDots');
+  var area  = document.getElementById('bannerArea');
+  if (!list.length) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
+  track.innerHTML = ''; dots.innerHTML = '';
+
+  list.forEach(function(b, i) {
+    var col = BANNER_COLORS[i % BANNER_COLORS.length];
+    var a = document.createElement('a');
+    a.className = 'banner-slide';
+    a.href = b.url || '#';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.background = col.bg;
+    a.style.border = '1px solid ' + col.border;
+    a.innerHTML = '<div class="banner-msg" style="color:'+col.text+'">'+b.msg+'</div>'
+      + '<div class="banner-cta" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 12px;text-decoration:none;font-size:12px;font-weight:600">바로 구매 &#8594;</div>'
+      + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.2);border-radius:3px;padding:1px 4px">AD</span>';
+    (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
+    track.appendChild(a);
+
+    var dot = document.createElement('button');
+    dot.className = 'banner-dot-item' + (i===0?' on':'');
+    (function(idx){ dot.onclick = function(){ bannerGoTo(idx); }; })(i);
+    dots.appendChild(dot);
+  });
+
+  // 스와이프
+  var outer = document.getElementById('bannerOuter');
+  outer.addEventListener('touchstart', function(e){ bannerTouchX = e.touches[0].clientX; }, {passive:true});
+  outer.addEventListener('touchend', function(e){
+    var diff = bannerTouchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) { if (diff > 0) bannerNext(); else bannerPrev(); }
+  }, {passive:true});
+  var md = false, mx = 0;
+  outer.addEventListener('mousedown', function(e){ md=true; mx=e.clientX; bannerTouchX=e.clientX; });
+  outer.addEventListener('mouseup', function(e){
+    if(!md) return; md=false;
+    var diff = mx - e.clientX;
+    if(Math.abs(diff)>40){ if(diff>0) bannerNext(); else bannerPrev(); }
+  });
+
+  bannerGoTo(0);
+}
+
+function bannerGoTo(i) {
+  bannerIdx = (i + bannerList.length) % bannerList.length;
+  document.getElementById('bannerTrack').style.transform = 'translateX(-'+(bannerIdx*100)+'%)';
+  document.querySelectorAll('.banner-dot-item').forEach(function(d,j){ d.classList.toggle('on', j===bannerIdx); });
+  clearInterval(bannerTimer);
+  if (bannerList.length > 1) bannerTimer = setInterval(bannerNext, 4000);
+}
+function bannerNext(){ bannerGoTo(bannerIdx+1); }
+function bannerPrev(){ bannerGoTo(bannerIdx-1); }
+
+function loadBannerSheet() {
+  if (!BANNER_SHEET_ID) return;
+  var todayStr = TODAY.getFullYear()+'-'+(''+(TODAY.getMonth()+1)).padStart(2,'0')+'-'+(''+(TODAY.getDate())).padStart(2,'0');
+  var url = 'https://docs.google.com/spreadsheets/d/'+BANNER_SHEET_ID+'/gviz/tq?tqx=out:json&gid='+BANNER_GID;
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      var rows = json.table.rows;
+      var cols = json.table.cols.map(function(c){ return c.label; });
+      var iMsg=-1, iUrl=-1, iStart=-1, iEnd=-1;
+      cols.forEach(function(c,i){
+        if(c.indexOf('배너 문구')>-1||c.indexOf('문구')>-1) iMsg=i;
+        else if(c.indexOf('연결 링크')>-1||c.indexOf('링크')>-1) iUrl=i;
+        else if(c.indexOf('시작일')>-1||c.indexOf('시작')>-1) iStart=i;
+        else if(c.indexOf('종료일')>-1||c.indexOf('종료')>-1||c.indexOf('마감')>-1) iEnd=i;
+      });
+      var todayTs = TODAY.getTime();
+      var active = [];
+      rows.forEach(function(row){
+        var get = function(idx){ return idx>-1&&row.c[idx]?String(row.c[idx].v||row.c[idx].f||'').trim():''; };
+        var getRaw = function(idx){ return idx>-1&&row.c[idx]?row.c[idx].v:null; };
+        var startStr = get(iStart);
+        var endStr   = get(iEnd);
+        var startRaw = getRaw(iStart);
+        var endRaw   = getRaw(iEnd);
+
+        function toDate(raw, s, isEnd) {
+          var d = null;
+          // gviz Date(yyyy,m,d) 형식 — 월은 0부터 시작
+          var m0 = String(raw||'').match(/Date\((\d+),(\d+),(\d+)\)/);
+          if (m0) {
+            d = new Date(+m0[1], +m0[2], +m0[3], 10, 0, 0); // 월 그대로 (이미 0기준)
+          } else {
+            // "2026. 5. 18" 또는 "2026-05-18" 형식
+            var m1 = s.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
+            if (m1) d = new Date(+m1[1], +m1[2]-1, +m1[3], 10, 0, 0);
+          }
+          if (!d) return null;
+          if (isEnd) d.setDate(d.getDate()+1); // 종료일은 익일
+          return d;
+        }
+        var now = new Date();
+        var start = toDate(startRaw, startStr, false);
+        var end   = toDate(endRaw, endStr, true);
+        if ((!start || now >= start) && (!end || now < end)) {
+          active.push({ msg: get(iMsg), url: get(iUrl) });
+        }
+      });
+      // 랜덤 섞기
+      for(var i=active.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=active[i]; active[i]=active[j]; active[j]=t; }
+      bannerList = active;
+      buildBanners(bannerList);
+    })
+    .catch(function(){ });
+}
 
 loadBannerSheet();
 var FORM_SHEET_ID = '1o95J316riKjHtHC2d_4qI7Qj3qYc5ezbLaonGtm2aL8';
@@ -565,6 +884,7 @@ DATA = DATA.filter(function(d){
 render();
 renderCal();
 loadFormData();
+loadVipList();
 
 // ── 오늘 내가 찾는 공구 ──
 var PICK_SHEET_ID = '1cA9bkFiRhFrUUlmfpxXOdeHTk9JsBzwA5yXTq7GlZ0U';
@@ -665,35 +985,5 @@ function renderPickList(items) {
 loadPickData();
 
 </script>
-
-<footer class="footer">
-  <p>(주) 스테이프레시 · 대표자: 이현지 · 사업자등록번호: 131-86-22753</p>
-  <p style="margin-top:4px">
-    <a href="https://open.kakao.com/o/seSpyssi" target="_blank" rel="noopener">제휴·광고 문의</a>
-    &nbsp;·&nbsp;
-    <a href="#" onclick="document.getElementById('privacy').style.display='block';return false;">개인정보처리방침</a>
-  </p>
-</footer>
-
-<!-- 개인정보처리방침 모달 -->
-<div id="privacy" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'" class="modal-bg open">
-  <div class="modal" style="max-height:80vh;overflow-y:auto">
-    <button class="modal-x" onclick="document.getElementById('privacy').style.display='none'">✕</button>
-    <h2 style="font-size:16px;font-weight:700;margin-bottom:1rem">개인정보처리방침</h2>
-    <div style="font-size:13px;color:var(--ink2);line-height:1.8">
-      <p><strong>(주) 스테이프레시</strong>는 공동구매 일정 정보 제공 서비스 운영을 위해 아래와 같이 최소한의 개인정보를 수집합니다.</p>
-      <br>
-      <p><strong>1. 수집 항목</strong><br>인플루언서 제출 폼: 닉네임, 인스타그램 아이디, 공구 일정 정보</p>
-      <br>
-      <p><strong>2. 수집 목적</strong><br>공동구매 일정 홈페이지 게재 및 정보 공유</p>
-      <br>
-      <p><strong>3. 보유 기간</strong><br>서비스 운영 기간 동안 보유 후 파기</p>
-      <br>
-      <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p>
-      <br>
-      <p style="color:var(--ink3);font-size:12px">대표자: 이현지 · 사업자등록번호: 131-86-22753</p>
-    </div>
-  </div>
-</div>
 </body>
 </html>
