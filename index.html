@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 5월 공동구매 일정</title>
+<title>공구모아 — 공동구매&핫딜 일정</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
@@ -458,7 +458,7 @@ function toggleActive(el) {
   render();
 }
 // 강조 인플루언서 - 구글 시트에서 자동 로드
-var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l']; // 시트 로드 전 기본값
+var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l', 'uzzang_zip', 'yunu_uno', 'hyun._.brother', 'mimimiso_']; // 시트 로드 전 기본값
 
 function loadVipList() {
   var url = 'https://docs.google.com/spreadsheets/d/1o95J316riKjHtHC2d_4qI7Qj3qYc5ezbLaonGtm2aL8/gviz/tq?tqx=out:json&gid=1388619433';
@@ -985,5 +985,35 @@ function renderPickList(items) {
 loadPickData();
 
 </script>
+
+<style>
+.footer{background:var(--surface2);border-top:1px solid var(--border);padding:1.25rem 1.5rem;margin-top:2rem;text-align:center}
+.footer p{font-size:11px;color:var(--ink3);line-height:1.8}
+.footer a{color:var(--ink3);text-decoration:underline}
+</style>
+
+<footer class="footer">
+  <p>(주) 스테이프레시 &middot; 대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
+  <p style="margin-top:4px">
+    <a href="https://open.kakao.com/o/seSpyssi" target="_blank" rel="noopener">제휴·광고 문의</a>
+    &nbsp;&middot;&nbsp;
+    <a href="#" onclick="document.getElementById('privacy').style.display='flex';return false;">개인정보처리방침</a>
+  </p>
+</footer>
+
+<div class="modal-bg" id="privacy" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-height:80vh;overflow-y:auto">
+    <button class="modal-x" onclick="document.getElementById('privacy').style.display='none'">&#10005;</button>
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:1rem">개인정보처리방침</h2>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.8">
+      <p><strong>(주) 스테이프레시</strong>는 공동구매 일정 정보 제공 서비스 운영을 위해 아래와 같이 최소한의 개인정보를 수집합니다.</p><br>
+      <p><strong>1. 수집 항목</strong><br>· 인플루언서 제출 폼: 닉네임, 인스타그램 아이디, 공구 일정 정보<br>· 인플루언서 공개 게시물: 공구 일정 정보 (상품명, 날짜)</p><br>
+      <p><strong>2. 수집 목적</strong><br>공동구매 일정 홈페이지 게재 및 정보 공유</p><br>
+      <p><strong>3. 보유 기간</strong><br>서비스 운영 기간 동안 보유 후 파기</p><br>
+      <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
+      <p style="color:var(--ink3);font-size:12px">대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
