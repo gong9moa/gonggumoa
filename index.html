@@ -207,7 +207,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .pick-section-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;padding:0 2px}
 .banner-slide{flex:0 0 100%;position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;height:180px}
 .banner-slide:hover{opacity:.95}
-.banner-slide-bg{width:100%;height:100%;object-fit:cover;display:block}
+.banner-slide-bg{width:100%;height:100%;object-fit:contain;display:block;background:#fff}
 .banner-slide-bg-color{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:56px}
 .banner-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent 0%,rgba(0,0,0,.72) 100%);padding:.75rem 1rem}
 .banner-top-badge{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.92);color:#2d3a5a}
@@ -689,7 +689,7 @@ function buildBanners(list) {
     a.rel = 'noopener';
     // 이미지 있으면 풀이미지, 없으면 컬러 배경
     if (b.img) {
-      a.innerHTML = '<img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'">'
+      a.style.background='#fff'; a.innerHTML = '<img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'">'
         + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
         + '<div class="banner-overlay">'
         + '<div class="banner-msg">'+b.msg+'</div>'
