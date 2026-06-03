@@ -249,6 +249,19 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   .inquiry-btn{font-size:11px;padding:4px 9px}
   #v-cal{overflow-x:auto;-webkit-overflow-scrolling:touch}
 }
+
+/* 플로팅 버튼 */
+.fab-wrap{position:fixed;bottom:24px;right:16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:150}
+.fab-main{width:52px;height:52px;border-radius:50%;background:#2d3a5a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(45,58,90,.4);transition:transform .2s;font-size:22px}
+.fab-main:hover{transform:scale(1.08)}
+.fab-item{display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .25s;transform:scale(0);opacity:0;pointer-events:none}
+.fab-item.show{transform:scale(1);opacity:1;pointer-events:auto}
+.fab-sub{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.fab-lbl{font-size:10px;font-weight:600;color:var(--ink2);white-space:nowrap;background:var(--surface);padding:1px 6px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+/* 스탬프 팝업 */
+.stamp-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.stamp-popup-bg.open{display:flex}
+.stamp-popup{background:var(--surface);border-radius:16px;padding:1.5rem;width:min(360px,calc(100vw - 2rem));position:relative;animation:pop .2s ease}
 </style>
 </head>
 <body>
@@ -344,10 +357,8 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       오늘 핫딜
     </button>
-    <button class="tab" onclick="switchTab('review',this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      체험단
-    </button>
+
+
   </div>
 
   <!-- 배너 슬라이더 -->
@@ -384,15 +395,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <div id="v-pick" class="view">
     <div id="pick-list"></div>
   </div>
-  <div id="v-review" class="view">
-    <div class="pick-header">
-      <strong>&#127381; 체험단 모집중</strong><br>
-      <span style="font-weight:400;font-size:12px">현재 모집중인 체험단 정보를 모았어요. 클릭하면 신청 페이지로 이동해요!</span>
-    </div>
-    <div id="review-list">
-      <div class="pick-empty"><div class="icon">&#127381;</div>현재 등록된 체험단이 없어요</div>
-    </div>
-  </div>
+
 </main>
 
 <div class="modal-bg" id="modal" onclick="closeModal(event)">
@@ -652,6 +655,7 @@ function switchTab(v,btn){
   btn.classList.add('on');
   document.getElementById('v-'+v).classList.add('on');
   if(v==='cal')renderCal();
+  if(v==='stamp'&&typeof renderStamp==='function')renderStamp();
   if(typeof gtag==='function'){
     gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
   }
@@ -1005,6 +1009,94 @@ function renderPickList(items) {
 
 loadPickData();
 
+
+// ── 출석 스탬프 ──
+(function(){
+  var TOTAL=7, KEY='gonggumoa_stamps';
+  function getPeriodKey(){var now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');return y+'-'+m+(now.getDate()<16?'-A':'-B');}
+  function getPeriodLabel(){var now=new Date(),d=now.getDate(),m=now.getMonth()+1;return d<16?m+'월 1일~15일':m+'월 16일~말일';}
+  function getNextReset(){var d=new Date().getDate();return d<16?'16일':'다음달 1일';}
+  function getToday(){return new Date().toISOString().split('T')[0];}
+  function load(){try{var r=localStorage.getItem(KEY),data=r?JSON.parse(r):{},pk=getPeriodKey();if(!data[pk])data[pk]={dates:[],lastCheck:''};return data;}catch(e){return{};}}
+  function save(d){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}}
+
+  function renderStampInner(el){
+    if(!el) return;
+    if(!el) return;
+    var data=load(),pk=getPeriodKey(),cur=data[pk]||{dates:[],lastCheck:''};
+    var n=Math.min(cur.dates.length,TOTAL),done=n>=TOTAL,today=getToday(),checkedToday=cur.lastCheck===today;
+    var pct=Math.round(n/TOTAL*100);
+    var stamps='';
+    for(var i=0;i<TOTAL;i++){
+      var bg,border,txt,dateLabel='';
+      if(i<n){
+        var d2=cur.dates[i];
+        var dm=d2?d2.slice(5).replace('-','/'):'' ;
+        if(i<n-1){bg='#ecfdf5';border='1.5px solid #6ee7b7';}
+        else{bg='#eff6ff';border='2px solid #93c5fd';}
+        txt='<div style="display:flex;flex-direction:column;align-items:center;gap:1px"><span style="font-size:15px">☕</span><span style="font-size:8px;color:#059669;font-weight:600;line-height:1">'+dm+'</span></div>';
+      } else {bg='var(--surface2)';border='1.5px dashed var(--border)';txt='';}
+      stamps+='<div style="flex:1;aspect-ratio:1;border-radius:8px;background:'+bg+';border:'+border+';display:flex;align-items:center;justify-content:center;min-width:0">'+txt+'</div>';
+    }
+    el.innerHTML=
+      '<div style="padding:1.25rem 1rem">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">'+
+        '<div><div style="font-size:15px;font-weight:600;color:var(--ink)">☕ 출석 스탬프</div>'+
+        '<div style="font-size:11px;color:var(--ink3);margin-top:2px">7일 모으면 커피 쿠폰 신청! · '+getPeriodLabel()+'</div></div>'+
+        '<div style="font-size:12px;font-weight:600;color:#1d4ed8;background:#eff6ff;padding:3px 10px;border-radius:20px">'+n+' / '+TOTAL+'</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:.85rem">'+stamps+'</div>'+
+      '<div style="height:5px;background:var(--surface2);border-radius:10px;overflow:hidden;margin-bottom:.9rem">'+
+        '<div style="height:100%;width:'+pct+'%;background:#2d3a5a;border-radius:10px;transition:width .5s"></div>'+
+      '</div>'+
+      (done?'':'<button id="sCheckBtn" style="width:100%;padding:.65rem;border-radius:10px;border:0.5px solid '+(checkedToday?'#6ee7b7':'var(--border)')+';background:'+(checkedToday?'#ecfdf5':'var(--surface)')+';font-size:13px;color:'+(checkedToday?'#059669':'var(--ink2)')+';cursor:'+(checkedToday?'default':'pointer')+';margin-bottom:.65rem;font-family:inherit">'+(checkedToday?'✅ 오늘 출석 완료! 내일 또 방문해요':'오늘 출석 체크하기')+'</button>')+
+      '<div style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:.75rem;line-height:1.6">'+
+        (done?'🎉 7일 달성! 아래에서 커피 쿠폰을 신청하세요':checkedToday?(TOTAL-n)+'일 더 방문하면 신청 가능해요! (리셋: '+getNextReset()+')':n>0?(TOTAL-n)+'일 더 방문하면 신청 가능해요!':'매일 방문하면 스탬프가 쌓여요!')+
+      '</div>'+
+      '<button id="sCouponBtn" style="width:100%;padding:.7rem;border-radius:10px;border:0.5px solid '+(done?'#2d3a5a':'var(--border)')+';background:'+(done?'#2d3a5a':'var(--surface2)')+';font-size:13px;font-weight:600;color:'+(done?'#fff':'var(--ink3)')+';cursor:'+(done?'pointer':'not-allowed')+';margin-bottom:.85rem;font-family:inherit">커피 쿠폰 신청하기</button>'+
+      '<details style="border-top:0.5px solid var(--border);padding-top:.7rem">'+
+        '<summary style="font-size:11px;color:var(--ink3);cursor:pointer;list-style:none">▸ 주의사항 보기</summary>'+
+        '<ul style="font-size:11px;color:var(--ink3);line-height:1.8;margin:.4rem 0 0 .75rem;padding:0">'+
+          '<li>스탬프는 같은 기기·브라우저에만 저장돼요</li>'+
+          '<li>브라우저/기기가 바뀌면 초기화될 수 있어요</li>'+
+          '<li>시크릿 모드에서는 저장이 안 돼요</li>'+
+          '<li>매월 1일, 16일 자동 리셋돼요</li>'+
+          '<li>쿠폰 신청 후 카카오 채팅으로 스크린샷 인증해 주세요</li>'+
+          '<li>쿠폰은 1인 1회, 소진 시 조기 마감될 수 있어요</li>'+
+        '</ul>'+
+      '</details></div>';
+    var cb=document.getElementById('sCheckBtn');
+    if(cb&&!checkedToday) cb.onclick=function(){var d2=load();if(!d2[pk])d2[pk]={dates:[],lastCheck:''};d2[pk].lastCheck=today;if(d2[pk].dates.indexOf(today)<0)d2[pk].dates.push(today);save(d2);renderStamp();};
+    var ab=document.getElementById('sCouponBtn');
+    if(ab&&done) ab.onclick=function(){window.open('https://open.kakao.com/o/goerOypi','_blank');};
+  }
+  window.renderStamp=function(){var el=document.getElementById("stamp-widget");if(el)renderStampInner(el);};
+  window.renderStampInner=renderStampInner;
+})();
+
+// ── 플로팅 버튼 ──
+var fabOpen=false;
+function toggleFab(){
+  fabOpen=!fabOpen;
+  ['stamp','kakao','insta'].forEach(function(id){
+    document.getElementById('fi-'+id).classList.toggle('show',fabOpen);
+  });
+  document.getElementById('fabMain').style.transform=fabOpen?'rotate(45deg)':'';
+}
+function openStampPopup(){
+  fabOpen=false;
+  ['stamp','kakao','insta'].forEach(function(id){
+    document.getElementById('fi-'+id).classList.remove('show');
+  });
+  document.getElementById('fabMain').style.transform='';
+  // 스탬프 렌더
+  var inner=document.getElementById('stamp-popup-inner');
+  if(inner&&typeof renderStampInner==='function') renderStampInner(inner);
+  document.getElementById('stampPopupBg').classList.add('open');
+}
+function closeStampPopup(){
+  document.getElementById('stampPopupBg').classList.remove('open');
+}
 </script>
 
 <style>
@@ -1013,6 +1105,37 @@ loadPickData();
 .footer a{color:var(--ink3);text-decoration:underline}
 </style>
 
+
+<!-- 플로팅 버튼 -->
+<div class="fab-wrap" id="fabWrap">
+  <div class="fab-item" id="fi-stamp">
+    <button class="fab-sub" style="background:#fff;border:1.5px solid var(--border);font-size:20px" onclick="openStampPopup()">☕</button>
+    <span class="fab-lbl">출석체크</span>
+  </div>
+  <div class="fab-item" id="fi-kakao">
+    <a class="fab-sub" href="https://open.kakao.com/o/goerOypi" target="_blank" rel="noopener" style="background:#FEE500;text-decoration:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#3C1E1E"><path d="M12 3C6.48 3 2 6.86 2 11.6c0 2.9 1.72 5.46 4.34 7.04L5.2 21.8a.5.5 0 0 0 .7.58l3.6-2.1c.81.14 1.64.22 2.5.22 5.52 0 10-3.86 10-8.6S17.52 3 12 3z"/></svg>
+    </a>
+    <span class="fab-lbl">카카오</span>
+  </div>
+  <div class="fab-item" id="fi-insta">
+    <a class="fab-sub" href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);text-decoration:none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <span class="fab-lbl">인스타</span>
+  </div>
+  <button class="fab-main" id="fabMain" onclick="toggleFab()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" id="fabIcon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+
+<!-- 스탬프 팝업 -->
+<div class="stamp-popup-bg" id="stampPopupBg" onclick="if(event.target===this)closeStampPopup()">
+  <div class="stamp-popup">
+    <button class="modal-x" onclick="closeStampPopup()">&#10005;</button>
+    <div id="stamp-popup-inner"></div>
+  </div>
+</div>
 <footer class="footer">
   <p>(주) 스테이프레시 &middot; 대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
   <p style="margin-top:4px">
