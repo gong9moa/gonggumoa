@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 — 공구 정보&핫딜 모음 </title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<title>공구모아 - 공구정보&amp;핫딜 모음</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
 <script>
@@ -45,7 +45,7 @@
 <style>
 :root{--bg:#f5f3ef;--ink:#1c1a17;--ink2:#6b6457;--ink3:#b0a898;--border:#e8e3dc;--surface:#fff;--surface2:#f3efe9;--navy:#2d3a5a;--navy-dark:#1e2740;--accent:#e8450a;--accent-light:#fdf0eb;--pink:#e84578;--pink-light:#fdeef4;--blue:#2563eb;--radius:10px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body{font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
 header{background:var(--navy);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-ring{width:40px;height:40px;border-radius:50%;background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);padding:2.5px;flex-shrink:0}
@@ -57,7 +57,7 @@ header{background:var(--navy);padding:0 1.5rem;height:56px;display:flex;align-it
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .hero{background:var(--navy-dark);padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
 .hero-text{font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
-.inquiry-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#edf3fa;border:1px solid #c5d8ed;border-radius:20px;color:#1d4ed8;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:"Noto Sans KR",sans-serif;transition:all .15s;box-shadow:0 2px 8px rgba(180,140,50,.35)}
+.inquiry-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#edf3fa;border:1px solid #c5d8ed;border-radius:20px;color:#1d4ed8;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;transition:all .15s;box-shadow:0 2px 8px rgba(180,140,50,.35)}
 .inquiry-btn:hover{background:#dbeafe;transform:translateY(-1px)}
 main{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 5rem}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.25rem}
@@ -68,16 +68,16 @@ main{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 5rem}
 .stat-clickable:hover{background:#f0f4ff}
 .controls{margin-bottom:1.1rem;display:flex;flex-direction:column;gap:9px}
 .search-box{position:relative}
-.search-box input{width:100%;padding:9px 14px 9px 38px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:"Noto Sans KR",sans-serif;background:var(--surface);color:var(--ink);outline:none;transition:border-color .15s}
+.search-box input{width:100%;padding:9px 14px 9px 38px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;background:var(--surface);color:var(--ink);outline:none;transition:border-color .15s}
 .search-box input:focus{border-color:var(--navy)}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink3);pointer-events:none}
 .filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .filter-label{font-size:12px;color:var(--ink2);font-weight:500}
-.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-family:"Noto Sans KR",sans-serif;color:var(--ink2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink2);cursor:pointer;transition:all .15s;white-space:nowrap}
 .chip:hover{border-color:var(--ink3)}
 .chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:1.25rem}
-.tab{padding:9px 20px;font-size:14px;font-family:"Noto Sans KR",sans-serif;color:var(--ink3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1.5px;display:flex;align-items:center;gap:6px;transition:all .15s}
+.tab{padding:9px 20px;font-size:14px;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1.5px;display:flex;align-items:center;gap:6px;transition:all .15s}
 .tab:hover{color:var(--ink2)}
 .tab.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:500}
 .view{display:none}
@@ -136,7 +136,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .cal-nav{display:flex;gap:6px}
 .cal-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:var(--ink2)}
 .cal-btn:hover{background:var(--surface2)}
-.cal-today-btn{padding:0 12px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:12px;font-family:"Noto Sans KR",sans-serif;color:var(--ink2)}
+.cal-today-btn{padding:0 12px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-size:12px;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink2)}
 .cal-today-btn:hover{background:var(--surface2)}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
 .cal-dow{text-align:center;padding:.6rem 0;font-size:11px;font-weight:500;color:var(--ink3);border-bottom:1px solid var(--border);letter-spacing:.4px}
@@ -203,12 +203,20 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .day-item-inf{font-size:11px;color:var(--ink3);white-space:nowrap;display:flex;align-items:center;gap:3px}
 
 /* 배너 */
-.banner-slide{flex:0 0 100%;display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;min-height:70px;text-decoration:none;position:relative;border-radius:var(--radius);cursor:pointer;transition:opacity .15s}
-.banner-slide:hover{opacity:.9}
-.banner-msg{font-size:14px;font-weight:600;color:#fff;flex:1;line-height:1.4}
-.banner-cta{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;margin-left:12px;flex-shrink:0}
-.banner-dot-item{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0}
-.banner-dot-item.on{background:var(--navy);width:14px;border-radius:3px}
+/* 풀이미지 배너 */
+.pick-section-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;padding:0 2px}
+.banner-slide{flex:0 0 100%;position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;height:180px}
+.banner-slide:hover{opacity:.95}
+.banner-slide-bg{width:100%;height:100%;object-fit:cover;display:block}
+.banner-slide-bg-color{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:56px}
+.banner-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent 0%,rgba(0,0,0,.72) 100%);padding:.75rem 1rem}
+.banner-top-badge{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.92);color:#2d3a5a}
+.banner-msg{font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:3px}
+.banner-sub-text{font-size:11px;color:rgba(255,255,255,.8)}
+.banner-inf{font-size:11px;color:rgba(255,255,255,.7);margin-top:4px}
+.banner-cta{position:absolute;bottom:12px;right:10px;font-size:11px;font-weight:600;color:#fff;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.5);border-radius:20px;padding:4px 10px;white-space:nowrap}
+.banner-dot-item{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);transition:all .2s;cursor:pointer;border:none;padding:0}
+.banner-dot-item.on{background:#fff;width:16px;border-radius:3px}
 @media(max-width:640px){
   main{padding:.75rem .75rem 4rem}
   header{padding:0 1rem;height:50px}
@@ -255,11 +263,14 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 
 <div class="hero">
   <div class="hero-text">&#128230; 공동구매 일정 &amp; 핫딜 정보 공유</div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <a href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" title="인스타그램 바로가기" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:transparent;border:1.5px solid rgba(255,255,255,.5);border-radius:8px;flex-shrink:0;transition:all .15s" onmouseover="this.style.borderColor='rgba(255,255,255,.9)'" onmouseout="this.style.borderColor='rgba(255,255,255,.5)'">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+  <div style="display:flex;align-items:center;gap:10px">
+    <a href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" title="인스타그램" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;opacity:.8;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.8">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
     </a>
-    <a class="inquiry-btn" href="https://open.kakao.com/o/seSpyssi" target="_blank" rel="noopener">&#128140; 제휴·광고 문의</a>
+    <a href="https://open.kakao.com/o/goerOypi" target="_blank" rel="noopener" title="카카오 오픈채팅" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;opacity:.8;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.8">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.48 3 2 6.86 2 11.6c0 2.9 1.72 5.46 4.34 7.04L5.2 21.8a.5.5 0 0 0 .7.58l3.6-2.1c.81.14 1.64.22 2.5.22 5.52 0 10-3.86 10-8.6S17.52 3 12 3z"/></svg>
+    </a>
+    <a class="inquiry-btn" href="https://open.kakao.com/o/goerOypi" target="_blank" rel="noopener">제휴·광고 문의</a>
   </div>
 </div>
 
@@ -340,11 +351,12 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   </div>
 
   <!-- 배너 슬라이더 -->
-  <div id="bannerArea" style="display:none;margin-bottom:1rem">
+  <div id="bannerArea" style="display:none;margin-bottom:1.25rem">
+    <div class="pick-section-title">🔥 오늘의 공구모아 PICK</div>
     <div style="overflow:hidden;border-radius:var(--radius);position:relative" id="bannerOuter">
-      <div id="bannerTrack" style="display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)"></div>
+      <div id="bannerTrack" style="display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1)"></div>
     </div>
-    <div id="bannerDots" style="display:flex;justify-content:center;gap:5px;padding:6px 0"></div>
+    <div id="bannerDots" style="display:flex;justify-content:center;gap:5px;padding:7px 0"></div>
   </div>
 
   <div id="v-list" class="view on">
@@ -675,12 +687,29 @@ function buildBanners(list) {
     a.href = b.url || '#';
     a.target = '_blank';
     a.rel = 'noopener';
-    a.style.background = col.bg;
-    a.style.border = '1px solid ' + col.border;
-    a.innerHTML = (b.img ? '<div style="width:56px;height:56px;border-radius:6px;overflow:hidden;flex-shrink:0;background:rgba(0,0,0,.15)"><img src="'+b.img+'" style="width:100%;height:100%;object-fit:cover"></div>' : '')
-      + '<div style="flex:1;min-width:0;'+(b.img?'margin-left:10px':'')+'"><div class="banner-msg" style="color:'+col.text+'">'+b.msg+'</div>'+(b.sub?'<div style="font-size:10px;color:rgba(255,255,255,.8);margin-top:2px">'+b.sub+'</div>':'')+'</div>'
-      + '<div class="banner-cta" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;margin-left:10px;flex-shrink:0">바로 구매 &#8594;</div>'
-      + '<span style="position:absolute;top:5px;right:6px;font-size:8px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.2);border-radius:3px;padding:1px 4px">AD</span>';
+    // 이미지 있으면 풀이미지, 없으면 컬러 배경
+    if (b.img) {
+      a.innerHTML = '<img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'">'
+        + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
+        + '<div class="banner-overlay">'
+        + '<div class="banner-msg">'+b.msg+'</div>'
+        + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
+        + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
+        + '</div>'
+        + '<div class="banner-cta">바로 구매 &#8594;</div>'
+        + '<span style="position:absolute;top:8px;right:8px;font-size:8px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.25);border-radius:3px;padding:1px 4px">AD</span>';
+    } else {
+      a.style.background = col.bg;
+      a.innerHTML = '<div class="banner-slide-bg-color">&#128722;</div>'
+        + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
+        + '<div class="banner-overlay">'
+        + '<div class="banner-msg">'+b.msg+'</div>'
+        + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
+        + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
+        + '</div>'
+        + '<div class="banner-cta">바로 구매 &#8594;</div>'
+        + '<span style="position:absolute;top:8px;right:8px;font-size:8px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.25);border-radius:3px;padding:1px 4px">AD</span>';
+    }
     (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
     track.appendChild(a);
 
@@ -728,7 +757,7 @@ function loadBannerSheet() {
       var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
       var rows = json.table.rows;
       var cols = json.table.cols.map(function(c){ return c.label; });
-      var iMsg=-1, iUrl=-1, iStart=-1, iEnd=-1, iImg=-1, iSub=-1;
+      var iMsg=-1, iUrl=-1, iStart=-1, iEnd=-1, iImg=-1, iSub=-1, iInf=-1;
       cols.forEach(function(c,i){
         if(c.indexOf('배너 문구')>-1||c.indexOf('문구')>-1) iMsg=i;
         else if(c.indexOf('연결 링크')>-1||c.indexOf('링크')>-1) iUrl=i;
@@ -736,6 +765,7 @@ function loadBannerSheet() {
         else if(c.indexOf('종료일')>-1||c.indexOf('종료')>-1||c.indexOf('마감')>-1) iEnd=i;
         else if(c.indexOf('이미지')>-1||c.indexOf('이미지URL')>-1) iImg=i;
         else if(c.indexOf('부제')>-1||c.indexOf('서브')>-1) iSub=i;
+        else if(c.indexOf('인플루언서')>-1||c.indexOf('셀러')>-1) iInf=i;
       });
       var todayTs = TODAY.getTime();
       var active = [];
@@ -766,7 +796,7 @@ function loadBannerSheet() {
         var start = toDate(startRaw, startStr, false);
         var end   = toDate(endRaw, endStr, true);
         if ((!start || now >= start) && (!end || now < end)) {
-          active.push({ msg: get(iMsg), url: get(iUrl), img: get(iImg), sub: get(iSub) });
+          active.push({ msg: get(iMsg), url: get(iUrl), img: get(iImg), sub: get(iSub), inf: get(iInf) });
         }
       });
       // 랜덤 섞기
