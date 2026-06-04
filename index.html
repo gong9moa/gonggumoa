@@ -205,18 +205,20 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 /* 배너 */
 /* 풀이미지 배너 */
 .pick-section-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;padding:0 2px}
-.banner-slide{flex:0 0 100%;position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;height:180px}
+.banner-slide{flex:0 0 100%;position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;background:var(--surface);border:1px solid var(--border)}
 .banner-slide:hover{opacity:.95}
-.banner-slide-bg{width:100%;height:100%;object-fit:contain;display:block;background:#fff}
-.banner-slide-bg-color{width:100%;height:180px;display:flex;align-items:center;justify-content:center;font-size:56px}
-.banner-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent 0%,rgba(0,0,0,.72) 100%);padding:.75rem 1rem}
-.banner-top-badge{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,.92);color:#2d3a5a}
-.banner-msg{font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:3px}
-.banner-sub-text{font-size:11px;color:rgba(255,255,255,.8)}
-.banner-inf{font-size:11px;color:rgba(255,255,255,.7);margin-top:4px}
-.banner-cta{position:absolute;bottom:12px;right:10px;font-size:11px;font-weight:600;color:#fff;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.5);border-radius:20px;padding:4px 10px;white-space:nowrap}
-.banner-dot-item{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);transition:all .2s;cursor:pointer;border:none;padding:0}
-.banner-dot-item.on{background:#fff;width:16px;border-radius:3px}
+.banner-slide-img-wrap{width:100%;aspect-ratio:750/340;overflow:hidden;background:#f5f3ef;display:flex;align-items:center;justify-content:center}
+.banner-slide-bg{width:100%;height:100%;object-fit:cover;display:block}
+.banner-slide-bg-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px}
+.banner-text-area{padding:.65rem 1rem .75rem;position:relative}
+.banner-top-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eff6ff;color:#2d3a5a;margin-bottom:5px}
+.banner-msg{font-size:13px;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:2px}
+.banner-sub-text{font-size:11px;color:var(--ink3)}
+.banner-inf{font-size:11px;color:var(--ink2);margin-top:2px}
+.banner-cta{display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:#fff;background:#2d3a5a;border-radius:20px;padding:4px 12px;white-space:nowrap}
+.banner-ad{position:absolute;top:8px;right:8px;font-size:8px;color:var(--ink3);background:var(--surface2);border-radius:3px;padding:1px 4px}
+.banner-dot-item{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0}
+.banner-dot-item.on{background:var(--navy);width:16px;border-radius:3px}
 @media(max-width:640px){
   main{padding:.75rem .75rem 4rem}
   header{padding:0 1rem;height:50px}
@@ -691,29 +693,22 @@ function buildBanners(list) {
     a.href = b.url || '#';
     a.target = '_blank';
     a.rel = 'noopener';
-    // 이미지 있으면 풀이미지, 없으면 컬러 배경
-    if (b.img) {
-      a.style.background='#fff'; a.innerHTML = '<img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'">'
-        + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
-        + '<div class="banner-overlay">'
-        + '<div class="banner-msg">'+b.msg+'</div>'
-        + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
-        + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
-        + '</div>'
-        + '<div class="banner-cta">바로 구매 &#8594;</div>'
-        + '<span style="position:absolute;top:8px;right:8px;font-size:8px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.25);border-radius:3px;padding:1px 4px">AD</span>';
-    } else {
-      a.style.background = col.bg;
-      a.innerHTML = '<div class="banner-slide-bg-color">&#128722;</div>'
-        + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
-        + '<div class="banner-overlay">'
-        + '<div class="banner-msg">'+b.msg+'</div>'
-        + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
-        + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
-        + '</div>'
-        + '<div class="banner-cta">바로 구매 &#8594;</div>'
-        + '<span style="position:absolute;top:8px;right:8px;font-size:8px;color:rgba(255,255,255,.6);background:rgba(0,0,0,.25);border-radius:3px;padding:1px 4px">AD</span>';
-    }
+    var imgHtml = b.img
+      ? '<div class="banner-slide-img-wrap"><img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'"></div>'
+      : '<div class="banner-slide-img-wrap" style="background:'+col.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
+    a.innerHTML = imgHtml
+      + '<div class="banner-text-area">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
+      + '<div style="flex:1;min-width:0">'
+      + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
+      + '<div class="banner-msg">'+b.msg+'</div>'
+      + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
+      + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
+      + '</div>'
+      + '<span class="banner-ad">AD</span>'
+      + '</div>'
+      + '<span class="banner-cta">바로 구매 &#8594;</span>'
+      + '</div>';
     (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
     track.appendChild(a);
 
@@ -1012,11 +1007,19 @@ loadPickData();
 
 // ── 출석 스탬프 ──
 (function(){
-  var TOTAL=7, KEY='gonggumoa_stamps';
-  function getPeriodKey(){var now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');return y+'-'+m+(now.getDate()<16?'-A':'-B');}
-  function getPeriodLabel(){var now=new Date(),d=now.getDate(),m=now.getMonth()+1;return d<16?m+'월 1일~15일':m+'월 16일~말일';}
-  function getNextReset(){var d=new Date().getDate();return d<16?'16일':'다음달 1일';}
+  var TOTAL=15, KEY='gonggumoa_stamps';
+  function getPeriodKey(){var now=new Date(),y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');return y+'-'+m;}
+  function getPeriodLabel(){var now=new Date(),m=now.getMonth()+1;return m+'월 한달 동안';}
+  function getNextReset(){var now=new Date();return (now.getMonth()+2)+'월 1일';}
   function getToday(){return new Date().toISOString().split('T')[0];}
+  function getUniqueCode(){
+    var seed=(navigator.userAgent+screen.width+screen.height+navigator.language).split('').reduce(function(a,c){return((a<<5)-a)+c.charCodeAt(0)|0;},0);
+    var chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code='', n=Math.abs(seed);
+    for(var i=0;i<6;i++){code+=chars[n%chars.length];n=Math.floor(n/chars.length)||Math.abs(seed^(i*7919));}
+    var t=new Date();
+    return 'GGM-'+t.getFullYear()+('0'+(t.getMonth()+1)).slice(-2)+('0'+t.getDate()).slice(-2)+'-'+code;
+  }
   function load(){try{var r=localStorage.getItem(KEY),data=r?JSON.parse(r):{},pk=getPeriodKey();if(!data[pk])data[pk]={dates:[],lastCheck:''};return data;}catch(e){return{};}}
   function save(d){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}}
 
@@ -1045,7 +1048,7 @@ loadPickData();
         '<div style="font-size:11px;color:var(--ink3);margin-top:2px">7일 모으면 커피 쿠폰 신청! · '+getPeriodLabel()+'</div></div>'+
         '<div style="font-size:12px;font-weight:600;color:#1d4ed8;background:#eff6ff;padding:3px 10px;border-radius:20px">'+n+' / '+TOTAL+'</div>'+
       '</div>'+
-      '<div style="display:flex;gap:6px;margin-bottom:.85rem">'+stamps+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:.85rem">'+stamps+'</div>'+
       '<div style="height:5px;background:var(--surface2);border-radius:10px;overflow:hidden;margin-bottom:.9rem">'+
         '<div style="height:100%;width:'+pct+'%;background:#2d3a5a;border-radius:10px;transition:width .5s"></div>'+
       '</div>'+
@@ -1064,7 +1067,9 @@ loadPickData();
           '<li>쿠폰 신청 후 카카오 채팅으로 스크린샷 인증해 주세요</li>'+
           '<li>쿠폰은 1인 1회, 소진 시 조기 마감될 수 있어요</li>'+
         '</ul>'+
-      '</details></div>';
+      '</details>'
+      +(done ? '<div style="background:#f0f6ff;border:2px solid #93c5fd;border-radius:10px;padding:.85rem 1rem;margin:.75rem 0 0;text-align:center"><div style="font-size:11px;color:var(--ink2);font-weight:500;margin-bottom:4px">🎉 15일 출석 달성! 이 화면을 캡처 후 카카오 채팅으로 전송해 주세요</div><div style="font-size:20px;font-weight:900;color:#1d4ed8;letter-spacing:4px;background:#fff;border-radius:6px;padding:.35rem .75rem;display:inline-block;border:1px solid #bfdbfe">'+getUniqueCode()+'</div></div>' : '')
+      +'</div>';
     var cb=document.getElementById('sCheckBtn');
     if(cb&&!checkedToday) cb.onclick=function(){var d2=load();if(!d2[pk])d2[pk]={dates:[],lastCheck:''};d2[pk].lastCheck=today;if(d2[pk].dates.indexOf(today)<0)d2[pk].dates.push(today);save(d2);renderStamp();};
     var ab=document.getElementById('sCouponBtn');
