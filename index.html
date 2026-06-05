@@ -205,20 +205,21 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 /* 배너 */
 /* 풀이미지 배너 */
 .pick-section-title{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:8px;padding:0 2px}
-.banner-slide{flex:0 0 100%;position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;background:var(--surface);border:1px solid var(--border)}
-.banner-slide:hover{opacity:.95}
-.banner-slide-img-wrap{width:100%;aspect-ratio:750/340;overflow:hidden;background:#f5f3ef;display:flex;align-items:center;justify-content:center}
+.banner-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.banner-slide{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-decoration:none;display:block;background:var(--surface);border:1px solid var(--border);transition:opacity .15s}
+.banner-slide:hover{opacity:.92}
+.banner-slide-img-wrap{width:100%;aspect-ratio:1/1;overflow:hidden;background:#f5f3ef;display:flex;align-items:center;justify-content:center}
 .banner-slide-bg{width:100%;height:100%;object-fit:cover;display:block}
-.banner-slide-bg-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px}
-.banner-text-area{padding:.65rem 1rem .75rem;position:relative}
-.banner-top-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eff6ff;color:#2d3a5a;margin-bottom:5px}
-.banner-msg{font-size:13px;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:2px}
-.banner-sub-text{font-size:11px;color:var(--ink3)}
-.banner-inf{font-size:11px;color:var(--ink2);margin-top:2px}
-.banner-cta{display:inline-block;margin-top:7px;font-size:11px;font-weight:600;color:#fff;background:#2d3a5a;border-radius:20px;padding:4px 12px;white-space:nowrap}
-.banner-ad{position:absolute;top:8px;right:8px;font-size:8px;color:var(--ink3);background:var(--surface2);border-radius:3px;padding:1px 4px}
+.banner-slide-bg-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px}
+.banner-text-area{padding:.5rem .6rem}
+.banner-top-badge{display:none}
+.banner-msg{font-size:11px;font-weight:600;color:var(--ink);line-height:1.3;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.banner-sub-text{display:none}
+.banner-inf{font-size:10px;color:var(--ink3);margin-bottom:4px}
+.banner-cta{display:inline-block;font-size:10px;font-weight:600;color:#fff;background:#2d3a5a;border-radius:10px;padding:2px 8px;white-space:nowrap}
+.banner-ad{font-size:8px;color:var(--ink3);float:right}
 .banner-dot-item{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;border:none;padding:0}
-.banner-dot-item.on{background:var(--navy);width:16px;border-radius:3px}
+.banner-dot-item.on{background:var(--navy);width:14px;border-radius:3px}
 @media(max-width:640px){
   main{padding:.75rem .75rem 4rem}
   header{padding:0 1rem;height:50px}
@@ -264,6 +265,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .stamp-popup-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
 .stamp-popup-bg.open{display:flex}
 .stamp-popup{background:var(--surface);border-radius:16px;padding:1.5rem;width:min(360px,calc(100vw - 2rem));position:relative;animation:pop .2s ease}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -366,8 +368,8 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <!-- 배너 슬라이더 -->
   <div id="bannerArea" style="display:none;margin-bottom:1.25rem">
     <div class="pick-section-title">🔥 오늘의 공구모아 PICK</div>
-    <div style="overflow:hidden;border-radius:var(--radius);position:relative" id="bannerOuter">
-      <div id="bannerTrack" style="display:flex;transition:transform .4s cubic-bezier(.4,0,.2,1)"></div>
+    <div id="bannerOuter">
+      <div id="bannerTrack" class="banner-grid"></div>
     </div>
     <div id="bannerDots" style="display:flex;justify-content:center;gap:5px;padding:7px 0"></div>
   </div>
@@ -514,17 +516,29 @@ function getFiltered() {
     return true;
   });
   // 대분류 → 소분류 → 날짜 순 (종료된 것은 항상 맨 뒤)
-  var catOrder = ['성인','육아'];
-  var subOrder = ['가전','건강','식품','뷰티','생활','패션','책','교육','교구','장난감','가구','여행','기타'];
+  // 카테고리 묶음 랜덤 순서 (로드 시 1회 결정, 새로고침마다 변경)
+  if (!window._groupOrder) {
+    var groups = [], seen = {};
+    DATA.filter(function(d){return !isEnded(d);}).forEach(function(d) {
+      var key=(d.cat||'')+'||'+(d.sub||'');
+      if(!seen[key]){seen[key]=true;groups.push(key);}
+    });
+    // 랜덤 셔플
+    for(var gi=groups.length-1;gi>0;gi--){
+      var gj=Math.floor(Math.random()*(gi+1));
+      var gt=groups[gi];groups[gi]=groups[gj];groups[gj]=gt;
+    }
+    window._groupOrder={};
+    groups.forEach(function(k,i){window._groupOrder[k]=i;});
+  }
   return res.sort(function(a,b) {
     var ae=isEnded(a), be=isEnded(b);
     if(ae!==be) return ae?1:-1;
-    var ac=catOrder.indexOf(a.cat), bc=catOrder.indexOf(b.cat);
-    if(ac<0) ac=99; if(bc<0) bc=99;
-    if(ac!==bc) return ac-bc;
-    var as=subOrder.indexOf(a.sub), bs=subOrder.indexOf(b.sub);
-    if(as<0) as=99; if(bs<0) bs=99;
-    if(as!==bs) return as-bs;
+    var ak=(a.cat||'')+'||'+(a.sub||'');
+    var bk=(b.cat||'')+'||'+(b.sub||'');
+    var ai=window._groupOrder[ak]!=null?window._groupOrder[ak]:999;
+    var bi=window._groupOrder[bk]!=null?window._groupOrder[bk]:999;
+    if(ai!==bi) return ai-bi;
     return (a.date||'').localeCompare(b.date||'');
   });
 }
@@ -698,24 +712,20 @@ function buildBanners(list) {
       : '<div class="banner-slide-img-wrap" style="background:'+col.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
     a.innerHTML = imgHtml
       + '<div class="banner-text-area">'
-      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
-      + '<div style="flex:1;min-width:0">'
-      + '<span class="banner-top-badge">&#11088; 공구모아 PICK</span>'
+      + '<div class="banner-ad">AD</div>'
       + '<div class="banner-msg">'+b.msg+'</div>'
-      + (b.sub ? '<div class="banner-sub-text">'+b.sub+'</div>' : '')
       + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
-      + '</div>'
-      + '<span class="banner-ad">AD</span>'
-      + '</div>'
-      + '<span class="banner-cta">바로 구매 &#8594;</span>'
+      + '<div style="margin-top:5px"><span class="banner-cta">구매 &#8594;</span></div>'
       + '</div>';
     (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
     track.appendChild(a);
 
-    var dot = document.createElement('button');
-    dot.className = 'banner-dot-item' + (i===0?' on':'');
-    (function(idx){ dot.onclick = function(){ bannerGoTo(idx); }; })(i);
-    dots.appendChild(dot);
+    if(i % 2 === 0) {
+      var dot = document.createElement('button');
+      dot.className = 'banner-dot-item' + (i===0?' on':'');
+      (function(idx){ dot.onclick = function(){ bannerGoTo(idx/2); }; })(i);
+      dots.appendChild(dot);
+    }
   });
 
   // 스와이프
@@ -737,11 +747,34 @@ function buildBanners(list) {
 }
 
 function bannerGoTo(i) {
-  bannerIdx = (i + bannerList.length) % bannerList.length;
-  document.getElementById('bannerTrack').style.transform = 'translateX(-'+(bannerIdx*100)+'%)';
+  var pages = Math.ceil(bannerList.length / 2);
+  bannerIdx = ((i % pages) + pages) % pages;
+  var track = document.getElementById('bannerTrack');
+  track.innerHTML = '';
+  var start = bannerIdx * 2;
+  bannerList.slice(start, start + 2).forEach(function(b2, bi) {
+    var col2 = BANNER_COLORS[(start+bi) % BANNER_COLORS.length];
+    var a2 = document.createElement('a');
+    a2.className = 'banner-slide';
+    a2.href = b2.url || '#';
+    a2.target = '_blank';
+    a2.rel = 'noopener';
+    var imgHtml2 = b2.img
+      ? '<div class="banner-slide-img-wrap"><img class="banner-slide-bg" src="'+b2.img+'" alt="'+b2.msg+'"></div>'
+      : '<div class="banner-slide-img-wrap" style="background:'+col2.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
+    a2.innerHTML = imgHtml2
+      + '<div class="banner-text-area">'
+      + '<div class="banner-ad">AD</div>'
+      + '<div class="banner-msg">'+b2.msg+'</div>'
+      + (b2.inf ? '<div class="banner-inf">'+b2.inf+'</div>' : '')
+      + '<div style="margin-top:5px"><span class="banner-cta">구매 &#8594;</span></div>'
+      + '</div>';
+    (function(msg,url){a2.addEventListener('click',function(){if(typeof trackBannerClick==='function')trackBannerClick(msg,url);});})(b2.msg,b2.url);
+    track.appendChild(a2);
+  });
   document.querySelectorAll('.banner-dot-item').forEach(function(d,j){ d.classList.toggle('on', j===bannerIdx); });
   clearInterval(bannerTimer);
-  if (bannerList.length > 1) bannerTimer = setInterval(bannerNext, 4000);
+  if (pages > 1) bannerTimer = setInterval(bannerNext, 4000);
 }
 function bannerNext(){ bannerGoTo(bannerIdx+1); }
 function bannerPrev(){ bannerGoTo(bannerIdx-1); }
@@ -800,6 +833,8 @@ function loadBannerSheet() {
       });
       // 랜덤 섞기
       for(var i=active.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=active[i]; active[i]=active[j]; active[j]=t; }
+      // 랜덤 순서
+      for(var i=active.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=active[i];active[i]=active[j];active[j]=t;}
       bannerList = active;
       buildBanners(bannerList);
     })
@@ -1071,7 +1106,19 @@ loadPickData();
       +(done ? '<div style="background:#f0f6ff;border:2px solid #93c5fd;border-radius:10px;padding:.85rem 1rem;margin:.75rem 0 0;text-align:center"><div style="font-size:11px;color:var(--ink2);font-weight:500;margin-bottom:4px">🎉 15일 출석 달성! 이 화면을 캡처 후 카카오 채팅으로 전송해 주세요</div><div style="font-size:20px;font-weight:900;color:#1d4ed8;letter-spacing:4px;background:#fff;border-radius:6px;padding:.35rem .75rem;display:inline-block;border:1px solid #bfdbfe">'+getUniqueCode()+'</div></div>' : '')
       +'</div>';
     var cb=document.getElementById('sCheckBtn');
-    if(cb&&!checkedToday) cb.onclick=function(){var d2=load();if(!d2[pk])d2[pk]={dates:[],lastCheck:''};d2[pk].lastCheck=today;if(d2[pk].dates.indexOf(today)<0)d2[pk].dates.push(today);save(d2);renderStamp();};
+    if(cb&&!checkedToday) cb.onclick=function(){
+      var btn=this;
+      btn.disabled=true;
+      btn.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>저장 중...</span>';
+      setTimeout(function(){
+        var d2=load();
+        if(!d2[pk])d2[pk]={dates:[],lastCheck:''};
+        d2[pk].lastCheck=today;
+        if(d2[pk].dates.indexOf(today)<0)d2[pk].dates.push(today);
+        save(d2);
+        renderStampInner(document.getElementById('stamp-popup-inner'));
+      }, 600);
+    };
     var ab=document.getElementById('sCouponBtn');
     if(ab&&done) ab.onclick=function(){window.open('https://open.kakao.com/o/goerOypi','_blank');};
   }
