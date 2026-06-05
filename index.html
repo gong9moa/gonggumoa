@@ -1080,7 +1080,7 @@ loadPickData();
       '<div style="padding:1.25rem 1rem">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem">'+
         '<div><div style="font-size:15px;font-weight:600;color:var(--ink)">☕ 출석 스탬프</div>'+
-        '<div style="font-size:11px;color:var(--ink3);margin-top:2px">7일 모으면 커피 쿠폰 신청! · '+getPeriodLabel()+'</div></div>'+
+        '<div style="font-size:11px;color:var(--ink3);margin-top:2px">15일 모으면 커피 쿠폰 신청! · '+getPeriodLabel()+'</div></div>'+
         '<div style="font-size:12px;font-weight:600;color:#1d4ed8;background:#eff6ff;padding:3px 10px;border-radius:20px">'+n+' / '+TOTAL+'</div>'+
       '</div>'+
       '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:.85rem">'+stamps+'</div>'+
@@ -1098,12 +1098,12 @@ loadPickData();
           '<li>스탬프는 같은 기기·브라우저에만 저장돼요</li>'+
           '<li>브라우저/기기가 바뀌면 초기화될 수 있어요</li>'+
           '<li>시크릿 모드에서는 저장이 안 돼요</li>'+
-          '<li>매월 1일, 16일 자동 리셋돼요</li>'+
-          '<li>쿠폰 신청 후 카카오 채팅으로 스크린샷 인증해 주세요</li>'+
+          '<li>매월 1일 자동 리셋돼요</li>'+
+          '<li>쿠폰 신청하기 버튼 클릭 후 구글 폼으로 제출해 주세요</li>'+
           '<li>쿠폰은 1인 1회, 소진 시 조기 마감될 수 있어요</li>'+
         '</ul>'+
       '</details>'
-      +(done ? '<div style="background:#f0f6ff;border:2px solid #93c5fd;border-radius:10px;padding:.85rem 1rem;margin:.75rem 0 0;text-align:center"><div style="font-size:11px;color:var(--ink2);font-weight:500;margin-bottom:4px">🎉 15일 출석 달성! 이 화면을 캡처 후 카카오 채팅으로 전송해 주세요</div><div style="font-size:20px;font-weight:900;color:#1d4ed8;letter-spacing:4px;background:#fff;border-radius:6px;padding:.35rem .75rem;display:inline-block;border:1px solid #bfdbfe">'+getUniqueCode()+'</div></div>' : '')
+      +(done ? '<div style="background:#f0f6ff;border:2px solid #93c5fd;border-radius:10px;padding:.85rem 1rem;margin:.75rem 0 0;text-align:center"><div style="font-size:11px;color:var(--ink2);font-weight:500;margin-bottom:4px">🎉 15일 출석 달성! 아래 버튼을 눌러 구글 폼으로 신청해 주세요</div><div style="font-size:20px;font-weight:900;color:#1d4ed8;letter-spacing:4px;background:#fff;border-radius:6px;padding:.35rem .75rem;display:inline-block;border:1px solid #bfdbfe">'+getUniqueCode()+'</div></div>' : '')
       +'</div>';
     var cb=document.getElementById('sCheckBtn');
     if(cb&&!checkedToday) cb.onclick=function(){
@@ -1116,6 +1116,14 @@ loadPickData();
         d2[pk].lastCheck=today;
         if(d2[pk].dates.indexOf(today)<0)d2[pk].dates.push(today);
         save(d2);
+        // GA 이벤트 추적
+        if(typeof gtag==='function'){
+          gtag('event','stamp_checkin',{
+            event_category:'출석체크',
+            event_label:today,
+            stamp_count:d2[pk].dates.length
+          });
+        }
         renderStampInner(document.getElementById('stamp-popup-inner'));
       }, 600);
     };
