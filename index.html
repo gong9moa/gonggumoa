@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>공구모아 - 공구정보&amp;핫딜 모음</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2d3a5a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="공구모아">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
 <script>
@@ -266,20 +272,37 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .stamp-popup-bg.open{display:flex}
 .stamp-popup{background:var(--surface);border-radius:16px;padding:1.5rem;width:min(360px,calc(100vw - 2rem));position:relative;animation:pop .2s ease}
 @keyframes spin{to{transform:rotate(360deg)}}
-</style>
+
+/* 공지 슬라이딩 */
+.notice-bar{background:#243050;padding:.28rem 0;overflow:hidden;white-space:nowrap}
+.notice-inner{display:inline-block;font-size:11px;color:rgba(255,255,255,.65);animation:marquee 20s linear infinite;padding-left:100%}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+/* PWA 홈 추가 배너 */
+.pwa-banner{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2d3a5a;color:#fff;border-radius:14px;padding:.75rem 1rem;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:140;align-items:center;gap:10px;max-width:300px;width:calc(100% - 2rem);animation:slideUp .3s ease}
+.pwa-banner.show{display:flex}
+@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+.pwa-banner-text{flex:1;line-height:1.4}
+.pwa-banner-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;font-family:inherit}
+.pwa-banner-close{background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;font-size:16px;padding:0;line-height:1;flex-shrink:0}</style>
 </head>
 <body>
 
 <header>
   <div class="logo">
     <div class="logo-ring"><div class="logo-inner"><span>공구</span><span>모아</span></div></div>
-    <div class="logo-text">공구모아</div>
+    <div style="display:flex;align-items:baseline;gap:7px">
+      <div class="logo-text">공구모아</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);font-weight:400;letter-spacing:.2px">공구정보&amp;핫딜 공유</div>
+    </div>
   </div>
   <div class="live-badge"><span class="live-dot"></span><span id="updatedAt">최신 데이터</span></div>
 </header>
 
 <div class="hero">
-  <div class="hero-text">&#128230; 공동구매 일정 &amp; 핫딜 정보 공유</div>
+  <div style="display:flex;flex-direction:column;gap:1px">
+    <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9)" id="heroDate"></div>
+
+  </div>
   <div style="display:flex;align-items:center;gap:10px">
     <a href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" title="인스타그램" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;opacity:.8;transition:opacity .15s;flex-shrink:0" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.8">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -291,6 +314,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   </div>
 </div>
 
+<div class="notice-bar"><span class="notice-inner">🔍 찾는 공구가 없으면 배너에서 신청 가능해요 &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; ☕ 출석체크 이벤트 진행중! 15일 모으면 커피 쿠폰 증정 &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; 📌 제휴·광고 문의는 카카오 채팅으로!</span></div>
 <main>
   <div class="stats">
     <div class="stat">
@@ -546,6 +570,19 @@ function render() {
   var rows=getFiltered(), tb=document.getElementById('tbody');
   var we=new Date(TODAY); we.setDate(we.getDate()+7);
   document.getElementById('s-total').textContent=DATA.length;
+  // 히어로 동적 문구
+  var todayActive=DATA.filter(function(d){
+    var dt=pd(d.date); if(!dt) return false;
+    var end=new Date(dt); end.setDate(end.getDate()+3); end.setHours(0,0,0,0);
+    return dt<=TODAY && end>=TODAY;
+  }).length;
+  // 오늘 날짜 + 진행중 건수 표시
+  var dateEl=document.getElementById('heroDate');
+  if(dateEl){
+    var days=['일','월','화','수','목','금','토'];
+    var now=new Date();
+    dateEl.textContent=(now.getMonth()+1)+'월 '+now.getDate()+'일 '+days[now.getDay()]+'요일 · 오늘 최저가';
+  }
   document.getElementById('s-today').textContent=DATA.filter(function(d){var dt=pd(d.date);return dt&&dt.getTime()===TODAY.getTime();}).length;
   // 오늘 마감 = 종료일(시작일+3일)이 오늘인 항목
   document.getElementById('s-end').textContent=DATA.filter(function(d){
@@ -554,7 +591,12 @@ function render() {
     return end.getTime()===TODAY.getTime();
   }).length;
   // 진행중 = 종료되지 않은 항목
-  document.getElementById('s-active').textContent=DATA.filter(function(d){return !isEnded(d);}).length;
+  // 진행중 = 오픈일 <= 오늘 <= 마감일 (예고 제외)
+  document.getElementById('s-active').textContent=DATA.filter(function(d){
+    var dt=pd(d.date); if(!dt) return false;
+    var end=new Date(dt); end.setDate(end.getDate()+3); end.setHours(0,0,0,0);
+    return dt<=TODAY && end>=TODAY;
+  }).length;
   if(!rows.length){tb.innerHTML='<tr><td><div class="no-data"><div class="icon">&#128269;</div>&#44160;&#49353; &#44208;&#44284;&#44032; &#50630;&#50612;&#50836;</div></td></tr>';return;}
   var html='';
   for(var i=0;i<rows.length;i++) {
@@ -616,7 +658,12 @@ function mkCell(dt,other) {
   var iso=fmtISO(dt);
   var evts=DATA.filter(function(d){var dp=pd(d.date);return dp&&fmtISO(dp)===iso;});
   evts.slice(0,3).forEach(function(d){
-    var ev=document.createElement('div');ev.className='cal-ev ev-'+(d.sub||'default');ev.textContent=d.name;
+    var ev=document.createElement('div');
+    var evIid=d.insta?d.insta.replace('@',''):'';
+    var evIsVip=VIP_INSTA.length>0&&evIid&&VIP_INSTA.indexOf(evIid.toLowerCase())>-1;
+    ev.className='cal-ev ev-'+(d.sub||'default');
+    if(evIsVip){ev.style.color='#1d4ed8';ev.style.fontWeight='600';}
+    ev.textContent=d.name;
     (function(item){ev.onclick=function(e){e.stopPropagation();openModal(item);};})(d);
     cell.appendChild(ev);
   });
@@ -1157,6 +1204,53 @@ function openStampPopup(){
 function closeStampPopup(){
   document.getElementById('stampPopupBg').classList.remove('open');
 }
+
+// ── PWA 홈 화면 추가 ──
+var deferredPrompt = null;
+
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  // 이미 설치됐거나 닫은 적 있으면 안 보여줌
+  if(!localStorage.getItem('pwa_dismissed')) {
+    setTimeout(function() {
+      document.getElementById('pwaBanner').classList.add('show');
+    }, 3000);
+  }
+});
+
+document.getElementById('pwaInstallBtn').addEventListener('click', function() {
+  if(!deferredPrompt) {
+    // iOS 안내
+    alert('Safari에서 하단 공유 버튼 → "홈 화면에 추가"를 눌러주세요!');
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function() {
+    deferredPrompt = null;
+    closePwaBanner();
+  });
+});
+
+function closePwaBanner() {
+  document.getElementById('pwaBanner').classList.remove('show');
+  localStorage.setItem('pwa_dismissed', '1');
+}
+
+// iOS 감지 - Safari에서 직접 안내
+var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+var isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
+  setTimeout(function() {
+    document.getElementById('pwaBanner').classList.add('show');
+  }, 3000);
+}
 </script>
 
 <style>
@@ -1196,6 +1290,16 @@ function closeStampPopup(){
     <div id="stamp-popup-inner"></div>
   </div>
 </div>
+<!-- PWA 홈 추가 배너 -->
+<div class="pwa-banner" id="pwaBanner">
+  <div class="pwa-banner-text">
+    <strong>홈 화면에 추가하기</strong><br>
+    <span style="color:rgba(255,255,255,.75)">앱처럼 빠르게 접속해요!</span>
+  </div>
+  <button class="pwa-banner-btn" id="pwaInstallBtn">추가하기</button>
+  <button class="pwa-banner-close" onclick="closePwaBanner()">✕</button>
+</div>
+
 <footer class="footer">
   <p>(주) 스테이프레시 &middot; 대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
   <p style="margin-top:4px">
