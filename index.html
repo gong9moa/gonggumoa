@@ -739,33 +739,67 @@ var BANNER_COLORS = [
   {bg:'#5B3A8A', border:'#3b1a6a', text:'#ffffff'},
 ];
 
+function buildCard(list, i, b, col) {
+  if (b.isFindCard) {
+    var d = document.createElement('div');
+    d.className = 'banner-slide';
+    d.style.background = '#edf3fa';
+    d.style.cursor = 'default';
+    d.innerHTML =
+      '<div class="banner-slide-img-wrap" style="background:#edf3fa">'
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#2d3a5a">'
+      + '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2d3a5a" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+      + '<div style="font-size:12px;font-weight:600;color:#2d3a5a;text-align:center;padding:0 .5rem">찾는 공구가<br>없으신가요?</div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="banner-text-area">'
+      + '<div class="banner-msg">원하는 공구가 없다면?</div>'
+      + '<div class="banner-inf">여기를 눌러 신청해주세요</div>'
+      + '<div style="display:flex;gap:6px;margin-top:6px">'
+      + '<a href="https://forms.gle/qZcL8A9VZT5GYoD49" target="_blank" rel="noopener" class="banner-cta" style="background:#2d3a5a">신청하기 &#8594;</a>'
+      + '<a href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" class="banner-cta" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);display:inline-flex;align-items:center;gap:3px">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>인스타</a>'
+      + '</div>'
+      + '</div>';
+    return d;
+  }
+  var a = document.createElement('a');
+  a.className = 'banner-slide';
+  a.href = b.url || '#';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  var imgHtml = b.img
+    ? '<div class="banner-slide-img-wrap"><img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'"></div>'
+    : '<div class="banner-slide-img-wrap" style="background:'+col.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
+  a.innerHTML = imgHtml
+    + '<div class="banner-text-area">'
+    + '<div class="banner-ad">AD</div>'
+    + '<div class="banner-msg">'+b.msg+'</div>'
+    + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
+    + '<div style="margin-top:5px"><span class="banner-cta">구매 &#8594;</span></div>'
+    + '</div>';
+  (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
+  return a;
+}
+
 function buildBanners(list) {
+  // "공구 찾기" 카드를 다른 배너와 함께 랜덤하게 섞기
+  list = list.concat([{isFindCard:true}]);
+  for(var si=list.length-1; si>0; si--){
+    var sj=Math.floor(Math.random()*(si+1));
+    var st=list[si]; list[si]=list[sj]; list[sj]=st;
+  }
+
   var track = document.getElementById('bannerTrack');
   var dots  = document.getElementById('bannerDots');
   var area  = document.getElementById('bannerArea');
-  if (!list.length) { area.style.display = 'none'; return; }
   area.style.display = 'block';
   track.innerHTML = ''; dots.innerHTML = '';
 
   list.forEach(function(b, i) {
     var col = BANNER_COLORS[i % BANNER_COLORS.length];
-    var a = document.createElement('a');
-    a.className = 'banner-slide';
-    a.href = b.url || '#';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    var imgHtml = b.img
-      ? '<div class="banner-slide-img-wrap"><img class="banner-slide-bg" src="'+b.img+'" alt="'+b.msg+'"></div>'
-      : '<div class="banner-slide-img-wrap" style="background:'+col.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
-    a.innerHTML = imgHtml
-      + '<div class="banner-text-area">'
-      + '<div class="banner-ad">AD</div>'
-      + '<div class="banner-msg">'+b.msg+'</div>'
-      + (b.inf ? '<div class="banner-inf">'+b.inf+'</div>' : '')
-      + '<div style="margin-top:5px"><span class="banner-cta">구매 &#8594;</span></div>'
-      + '</div>';
-    (function(msg, url){ a.addEventListener('click', function(){ if(typeof trackBannerClick==='function') trackBannerClick(msg, url); }); })(b.msg, b.url);
-    track.appendChild(a);
+    var card = buildCard(list, i, b, col);
+    track.appendChild(card);
 
     if(i % 2 === 0) {
       var dot = document.createElement('button');
@@ -790,35 +824,23 @@ function buildBanners(list) {
     if(Math.abs(diff)>40){ if(diff>0) bannerNext(); else bannerPrev(); }
   });
 
+  window._bannerListFull = list;
   bannerGoTo(0);
 }
 
 function bannerGoTo(i) {
-  var pages = Math.ceil(bannerList.length / 2);
+  var list = window._bannerListFull || bannerList;
+  var pages = Math.ceil(list.length / 2);
   bannerIdx = ((i % pages) + pages) % pages;
   var track = document.getElementById('bannerTrack');
   track.innerHTML = '';
   var start = bannerIdx * 2;
-  bannerList.slice(start, start + 2).forEach(function(b2, bi) {
+  list.slice(start, start + 2).forEach(function(b2, bi) {
     var col2 = BANNER_COLORS[(start+bi) % BANNER_COLORS.length];
-    var a2 = document.createElement('a');
-    a2.className = 'banner-slide';
-    a2.href = b2.url || '#';
-    a2.target = '_blank';
-    a2.rel = 'noopener';
-    var imgHtml2 = b2.img
-      ? '<div class="banner-slide-img-wrap"><img class="banner-slide-bg" src="'+b2.img+'" alt="'+b2.msg+'"></div>'
-      : '<div class="banner-slide-img-wrap" style="background:'+col2.bg+'"><div class="banner-slide-bg-color">&#128722;</div></div>';
-    a2.innerHTML = imgHtml2
-      + '<div class="banner-text-area">'
-      + '<div class="banner-ad">AD</div>'
-      + '<div class="banner-msg">'+b2.msg+'</div>'
-      + (b2.inf ? '<div class="banner-inf">'+b2.inf+'</div>' : '')
-      + '<div style="margin-top:5px"><span class="banner-cta">구매 &#8594;</span></div>'
-      + '</div>';
-    (function(msg,url){a2.addEventListener('click',function(){if(typeof trackBannerClick==='function')trackBannerClick(msg,url);});})(b2.msg,b2.url);
-    track.appendChild(a2);
+    var card = buildCard(list, start+bi, b2, col2);
+    track.appendChild(card);
   });
+
   document.querySelectorAll('.banner-dot-item').forEach(function(d,j){ d.classList.toggle('on', j===bannerIdx); });
   clearInterval(bannerTimer);
   if (pages > 1) bannerTimer = setInterval(bannerNext, 4000);
