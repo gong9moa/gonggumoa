@@ -741,27 +741,51 @@ var BANNER_COLORS = [
 
 function buildCard(list, i, b, col) {
   if (b.isFindCard) {
-    var d = document.createElement('div');
+    var d = document.createElement('a');
     d.className = 'banner-slide';
-    d.style.background = '#edf3fa';
-    d.style.cursor = 'default';
+    d.href = 'https://forms.gle/qZcL8A9VZT5GYoD49';
+    d.target = '_blank';
+    d.rel = 'noopener';
     d.innerHTML =
-      '<div class="banner-slide-img-wrap" style="background:#edf3fa">'
-      + '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;color:#2d3a5a">'
-      + '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2d3a5a" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-      + '<div style="font-size:12px;font-weight:600;color:#2d3a5a;text-align:center;padding:0 .5rem">찾는 공구가<br>없으신가요?</div>'
+      '<div class="banner-slide-img-wrap" style="background:linear-gradient(135deg,#3b5683 0%,#2d3a5a 60%,#1e2740 100%);position:relative;overflow:hidden">'
+      + '<div style="position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06);top:-40px;right:-30px"></div>'
+      + '<div style="position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.05);bottom:-20px;left:-20px"></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1">'
+      + '<div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.2)">'
+      + '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+      + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:#fff;text-align:center;padding:0 .5rem;line-height:1.4">찾는 공구가<br>없으신가요?</div>'
       + '</div>'
       + '</div>'
       + '<div class="banner-text-area">'
-      + '<div class="banner-msg">원하는 공구가 없다면?</div>'
-      + '<div class="banner-inf">여기를 눌러 신청해주세요</div>'
-      + '<div style="display:flex;gap:6px;margin-top:6px">'
-      + '<a href="https://forms.gle/qZcL8A9VZT5GYoD49" target="_blank" rel="noopener" class="banner-cta" style="background:#2d3a5a">신청하기 &#8594;</a>'
-      + '<a href="https://www.instagram.com/gong.gu.moa/" target="_blank" rel="noopener" class="banner-cta" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);display:inline-flex;align-items:center;gap:3px">'
-      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>인스타</a>'
-      + '</div>'
+      + '<div class="banner-msg">원하는 공구를 찾아드려요!</div>'
+      + '<div class="banner-inf">버튼을 눌러 신청해주세요 ✍️</div>'
+      + '<div style="margin-top:6px"><span class="banner-cta" style="background:#2d3a5a">신청하기 &#8594;</span></div>'
       + '</div>';
     return d;
+  }
+  if (b.isInstaCard) {
+    var d2 = document.createElement('a');
+    d2.className = 'banner-slide';
+    d2.href = 'https://www.instagram.com/gong.gu.moa/';
+    d2.target = '_blank';
+    d2.rel = 'noopener';
+    d2.innerHTML =
+      '<div class="banner-slide-img-wrap" style="background:linear-gradient(135deg,#4f5bd5 0%,#962fbf 25%,#d62976 50%,#fa7e1e 75%,#feda75 100%);position:relative;overflow:hidden">'
+      + '<div style="position:absolute;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.08);top:-50px;left:-40px"></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1">'
+      + '<div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.15)">'
+      + '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'
+      + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:#fff;text-align:center;line-height:1.4">가장 빠른 소식은<br>인스타에서 확인하세요</div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="banner-text-area">'
+      + '<div class="banner-msg">공구모아 팔로우하기</div>'
+      + '<div class="banner-inf">최신 핫딜을 가장 먼저 받아보세요 📩</div>'
+      + '<div style="margin-top:6px"><span class="banner-cta" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)">인스타 바로가기 &#8594;</span></div>'
+      + '</div>';
+    return d2;
   }
   var a = document.createElement('a');
   a.className = 'banner-slide';
@@ -783,8 +807,8 @@ function buildCard(list, i, b, col) {
 }
 
 function buildBanners(list) {
-  // "공구 찾기" 카드를 다른 배너와 함께 랜덤하게 섞기
-  list = list.concat([{isFindCard:true}]);
+  // "공구 찾기"와 "인스타그램" 카드를 다른 배너와 함께 랜덤하게 섞기
+  list = list.concat([{isFindCard:true}, {isInstaCard:true}]);
   for(var si=list.length-1; si>0; si--){
     var sj=Math.floor(Math.random()*(si+1));
     var st=list[si]; list[si]=list[sj]; list[sj]=st;
