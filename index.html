@@ -977,7 +977,7 @@ var FORM_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwvqvbGVLOUBhIqITL
 
 function loadFormDataChunk(offset) {
   offset = offset || 0;
-  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=200')
+  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=3000')
     .then(function (r) { return r.json(); })
     .then(function (json) {
       if (json.error) { console.log('폼 데이터 로드 실패:', json.error); return; }
@@ -1329,6 +1329,8 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
     <a href="https://open.kakao.com/o/seSpyssi" target="_blank" rel="noopener">제휴·광고 문의</a>
     &nbsp;&middot;&nbsp;
     <a href="#" onclick="document.getElementById('privacy').style.display='flex';return false;">개인정보처리방침</a>
+    &nbsp;&middot;&nbsp;
+    <a href="#" onclick="document.getElementById('terms').style.display='flex';return false;">이용약관</a>
   </p>
 </footer>
 
@@ -1341,6 +1343,21 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
       <p><strong>1. 수집 항목</strong><br>· 인플루언서 제출 폼: 닉네임, 인스타그램 아이디, 공구 일정 정보<br>· 인플루언서 공개 게시물: 공구 일정 정보 (상품명, 날짜)</p><br>
       <p><strong>2. 수집 목적</strong><br>공동구매 일정 홈페이지 게재 및 정보 공유</p><br>
       <p><strong>3. 보유 기간</strong><br>서비스 운영 기간 동안 보유 후 파기</p><br>
+      <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
+      <p style="color:var(--ink3);font-size:12px">대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="terms" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-height:80vh;overflow-y:auto">
+    <button class="modal-x" onclick="document.getElementById('terms').style.display='none'">&#10005;</button>
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:1rem">이용약관</h2>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.8">
+      <p><strong>(주) 스테이프레시</strong>가 운영하는 공구모아(gonggumoa.com)의 모든 콘텐츠(공구 일정, 인플루언서 정보, 상품명, 일정 등 일체)에 대해 아래와 같이 안내드립니다.</p><br>
+      <p><strong>1. 저작권 및 데이터베이스권</strong><br>본 사이트에 게재된 정보는 (주) 스테이프레시가 자체적으로 수집·정리·구성한 데이터베이스로, 저작권법상 데이터베이스제작자의 권리로 보호받습니다.</p><br>
+      <p><strong>2. 무단 수집·재배포 금지</strong><br>사전 서면 동의 없이 본 사이트의 콘텐츠를 크롤링, 스크래핑 등 자동화된 방법으로 수집하거나, 이를 복제·가공하여 타 서비스에 게재·재배포하는 행위를 금지합니다.</p><br>
+      <p><strong>3. 위반 시 조치</strong><br>본 약관을 위반한 무단 수집·재배포 행위가 확인될 경우, 민사상 손해배상 청구 및 형사 고소 등 법적 조치를 취할 수 있습니다.</p><br>
       <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
       <p style="color:var(--ink3);font-size:12px">대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
     </div>
