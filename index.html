@@ -554,8 +554,8 @@ function toggleActive(el) {
   if(e2){e2.style.background='';e2.style.color='var(--accent)';}
   render();
 }
-// 강조 인플루언서 - 구글 시트에서 자동 로드
-var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l', 'uzzang_zip', 'yunu_uno', 'hyun._.brother', 'mimimiso_']; // 시트 로드 전 기본값
+// 강조 인플루언서 - "공구모아 일정" 시트의 "강조표시" 컬럼(Y)에서 자동으로 채워져요
+var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l', 'uzzang_zip', 'yunu_uno', 'hyun._.brother', 'mimimiso_']; // 시트 로딩 전까지 보여줄 기본값
 
 
 function getFiltered() {
@@ -977,7 +977,7 @@ var FORM_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwvqvbGVLOUBhIqITL
 
 function loadFormDataChunk(offset) {
   offset = offset || 0;
-  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=50')
+  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=200')
     .then(function (r) { return r.json(); })
     .then(function (json) {
       if (json.error) { console.log('폼 데이터 로드 실패:', json.error); return; }
@@ -985,13 +985,18 @@ function loadFormDataChunk(offset) {
       if (offset === 0) {
         // 새로 받기 시작하는 시점에 기존 form 데이터 제거
         DATA = DATA.filter(function (d) { return d.source !== 'form'; });
+        // 강조표시(Y) 컬럼에서 받아온 실제 VIP 목록으로 교체
+        if (Array.isArray(json.vipList)) {
+          VIP_INSTA = json.vipList;
+          console.log('강조 인플루언서 ' + VIP_INSTA.length + '명 시트에서 로드 완료');
+        }
       }
       DATA = DATA.concat(json.items);
       document.getElementById('updatedAt').textContent = '최신 데이터 (폼 ' + (offset + json.items.length) + '건 포함)';
       render(); renderCal();
 
       if (json.hasMore) {
-        setTimeout(function () { loadFormDataChunk(offset + json.limit); }, 250);
+        setTimeout(function () { loadFormDataChunk(offset + json.limit); }, 0);
       } else {
         console.log('구글 폼 데이터 ' + (offset + json.items.length) + '건 로드 완료');
       }
