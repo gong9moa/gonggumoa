@@ -270,8 +270,12 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .pick-inf-head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
 .pick-inf-title{font-size:12px;color:var(--ink2);font-weight:500}
 .pick-inf-tag{font-size:11px;color:#2d5fd6;background:#eaf0fb;padding:2px 8px;border-radius:20px;font-weight:600}
-.pick-inf-strip{display:flex;gap:9px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.pick-inf-strip::-webkit-scrollbar{display:none}
+.pick-inf-strip{display:flex;gap:9px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;cursor:grab;user-select:none}
+.pick-inf-strip.dragging{cursor:grabbing}
+.pick-inf-strip::-webkit-scrollbar{height:5px}
+.pick-inf-strip::-webkit-scrollbar-track{background:transparent}
+.pick-inf-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.pick-inf-strip::-webkit-scrollbar-thumb:hover{background:var(--ink3)}
 .pick-inf-card{flex:0 0 auto;width:80px;height:50px;background:var(--surface);border:1px solid var(--border);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;transition:transform .1s}
 .pick-inf-card:active{transform:scale(.95)}
 .pick-inf-card .nm{font-size:11.5px;font-weight:600;color:var(--ink);line-height:1}
@@ -1330,7 +1334,7 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
     <stop offset="55%" stop-color="#B900B4"/><stop offset="100%" stop-color="#7638FA"/>
   </linearGradient>
 </defs></svg>
-<button class="to-top" id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="맨 위로">
+<button class="to-top" id="toTop" aria-label="맨 위로">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
 </button>
 <div class="fab-wrap" id="fabWrap">
@@ -1426,14 +1430,54 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
       h+='<a class="pick-inf-card" href="https://instagram.com/'+inf[1]+'" target="_blank" rel="noopener"><span>'+ig+'</span><span class="nm">'+inf[0]+'</span></a>';
     });
     el.innerHTML=h;
+
+    // PC 마우스 드래그로 좌우 슬라이딩
+    var isDown=false, startX, startScroll, moved=false;
+    el.addEventListener('mousedown', function(e){
+      isDown=true; moved=false;
+      el.classList.add('dragging');
+      startX=e.pageX;
+      startScroll=el.scrollLeft;
+    });
+    el.addEventListener('mouseleave', function(){ isDown=false; el.classList.remove('dragging'); });
+    el.addEventListener('mouseup', function(){ isDown=false; el.classList.remove('dragging'); });
+    el.addEventListener('mousemove', function(e){
+      if(!isDown) return;
+      e.preventDefault();
+      var walk=e.pageX-startX;
+      if(Math.abs(walk)>5) moved=true;
+      el.scrollLeft=startScroll-walk;
+    });
+    // 드래그 중 실수로 인스타 링크 열리는 것 방지
+    el.querySelectorAll('.pick-inf-card').forEach(function(card){
+      card.addEventListener('click', function(e){ if(moved){ e.preventDefault(); } });
+    });
+    // 마우스 휠(세로)을 가로 스크롤로 변환 (PC 편의)
+    el.addEventListener('wheel', function(e){
+      if(Math.abs(e.deltaY) > Math.abs(e.deltaX)){
+        el.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    }, {passive:false});
   }
 })();
 (function(){
   var btn = document.getElementById('toTop');
-  window.addEventListener('scroll', function(){
-    if(window.scrollY > 400){ btn.classList.add('show'); }
-    else{ btn.classList.remove('show'); }
-  }, {passive:true});
+  if(!btn) return;
+  // 클릭 시 맨 위로 (여러 방식 병행 — 브라우저 호환)
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    try { window.scrollTo({top:0, behavior:'smooth'}); } catch(err) { window.scrollTo(0,0); }
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+  // 스크롤 감지
+  function onScroll(){
+    var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    if(y > 400){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
 })();
 </script>
 </body>
