@@ -3,14 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>공구모아 - 공구정보&amp;핫딜 모음</title>
+<!-- ── 검색엔진 최적화(SEO) ── -->
+<meta name="description" content="인플루언서 공동구매(공구) 일정을 한눈에! 육아·뷰티·식품 등 인기 인플루언서 공구 일정과 라이브방송 정보를 매일 업데이트합니다. 오늘의 공구, 공구 일정, 공동구매 정보는 공구모아에서 확인하세요.">
+<meta name="keywords" content="공구모아, 공구, 공동구매, 공구일정, 공동구매일정, 인플루언서공구, 오늘의공구, 육아공구, 인스타공구, 공구정보, 라이브방송, 공구모음">
+<meta name="author" content="공구모아">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://gonggumoa.com/">
+<meta property="og:url" content="https://gonggumoa.com/">
+<meta property="og:site_name" content="공구모아">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<title>공구모아 | 인플루언서 공동구매 일정·공구 모음</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#2d3a5a">
+<meta name="theme-color" content="#224C9E">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="공구모아">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<!-- 파비콘 (브라우저 탭) -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<!-- 아이폰 홈 화면 아이콘 -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<!-- PWA 아이콘 -->
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+<!-- 카톡/SNS 공유 미리보기 -->
+<meta property="og:title" content="공구모아 - 공구정보&amp;핫딜 모음">
+<meta property="og:description" content="인플루언서 공동구매 일정을 한눈에! 오늘의 공구 정보와 핫딜을 모아봤어요.">
+<meta property="og:image" content="/icon-512.png">
+<meta property="og:type" content="website">
+<!-- ── 구조화된 데이터 (검색엔진이 사이트 성격을 이해하게) ── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "공구모아",
+  "alternateName": "공구모아 - 인플루언서 공동구매 일정",
+  "url": "https://gonggumoa.com/",
+  "description": "인플루언서 공동구매(공구) 일정과 라이브방송 정보를 매일 모아서 제공하는 서비스",
+  "inLanguage": "ko-KR",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://gonggumoa.com/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "공구모아",
+  "url": "https://gonggumoa.com/",
+  "logo": "https://gonggumoa.com/icon-512.png",
+  "description": "인플루언서 공동구매 일정 정보 제공 서비스"
+}
+</script>
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-BBSL0JLGEH"></script>
 <script>
@@ -158,6 +210,10 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .cal-cell.sun .cal-dn{color:var(--accent)}
 .cal-cell.sat .cal-dn{color:var(--blue)}
 .cal-ev{font-size:10px;line-height:1.4;padding:2px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:opacity .1s}
+.cal-ev-live{background:#fde8e8;color:#c81e1e;font-weight:600}
+.cal-toggle{display:flex;gap:6px;margin-bottom:10px;justify-content:center}
+.cal-tg{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--ink2);cursor:pointer;font-family:inherit;transition:all .15s}
+.cal-tg.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .cal-ev:hover{opacity:.8}
 .ev-가전{background:#fef3c7;color:#92400e}
 .ev-건강{background:#d1fae5;color:#065f46}
@@ -262,8 +318,8 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 /* 플로팅 버튼 */
 .fab-wrap{position:fixed;bottom:24px;right:16px;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:150}
 /* 맨 위로 버튼 */
-.to-top{position:fixed;bottom:88px;right:19px;width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.15);z-index:150;opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .25s,transform .25s}
-.to-top.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.to-top{position:fixed;bottom:88px;right:19px;width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.15);z-index:160;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s}
+.to-top.show{opacity:1;visibility:visible;transform:translateY(0)}
 .to-top svg{stroke:var(--navy)}
 /* 공구모아 PICK 인플루언서 띠 */
 .pick-inf-wrap{margin:14px 0 16px}
@@ -357,7 +413,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <div class="controls">
     <div class="search-box">
       <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="q" placeholder="품목명, 인플루언서, 아이디 검색..." oninput="render()">
+      <input type="text" id="q" placeholder="품목명, 인플루언서, 아이디 검색..." oninput="refreshView()">
     </div>
     <div class="filter-row">
       <span class="filter-label">오늘</span>
@@ -393,7 +449,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <div class="tabs">
     <button class="tab on" onclick="switchTab('list',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-      리스트
+      공구 일정
     </button>
     <button class="tab" onclick="switchTab('cal',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -402,6 +458,10 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
     <button class="tab" onclick="switchTab('pick',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       오늘 핫딜
+    </button>
+    <button class="tab" onclick="switchTab('live',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      라방 일정
     </button>
 
 
@@ -442,6 +502,11 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
           <button class="cal-btn" onclick="calMove(1)">&#9654;</button>
         </div>
       </div>
+      <div class="cal-toggle">
+        <button class="cal-tg on" onclick="setCalMode('all',this)">전체</button>
+        <button class="cal-tg" onclick="setCalMode('deal',this)">🛒 공구</button>
+        <button class="cal-tg" onclick="setCalMode('live',this)">📺 라방</button>
+      </div>
       <div class="cal-grid" id="calGrid"></div>
     </div>
   </div>
@@ -449,6 +514,14 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <!-- 오늘 내가 찾는 공구 뷰 -->
   <div id="v-pick" class="view">
     <div id="pick-list"></div>
+  </div>
+
+  <!-- 라방 일정 뷰 -->
+  <div id="v-live" class="view">
+    <div class="table-wrap">
+      <table><thead><tr><th>라이브 방송 일정</th></tr></thead>
+      <tbody id="liveBody"></tbody></table>
+    </div>
   </div>
 
 </main>
@@ -539,13 +612,13 @@ function dday(d) {
 function setCat(v,el) {
   filters.cat=v;
   document.querySelectorAll('.cat-chip').forEach(function(c){c.classList.remove('on');});
-  el.classList.add('on'); render();
+  el.classList.add('on'); refreshView();
   if(typeof gtag==='function'&&v!=='전체') gtag('event','filter_view',{event_category:'대분류필터',event_label:v});
 }
 function setSub(v,el) {
   filters.sub=v;
   document.querySelectorAll('.sub-chip').forEach(function(c){c.classList.remove('on');});
-  el.classList.add('on'); render();
+  el.classList.add('on'); refreshView();
   if(typeof gtag==='function'&&v!=='전체') gtag('event','filter_view',{event_category:'소분류필터',event_label:v});
 }
 function toggleToday(el) {
@@ -557,7 +630,7 @@ function toggleToday(el) {
   if(e2){e2.style.background='';e2.style.color='var(--accent)';}
   var e3=document.getElementById('activeChip');
   if(e3){e3.style.background='';e3.style.color='#059669';}
-  render();
+  refreshView();
 }
 function toggleTodayEnd(el) {
   filters.todayEnd=!filters.todayEnd;
@@ -568,7 +641,7 @@ function toggleTodayEnd(el) {
   if(e1){e1.style.background='';e1.style.color='var(--navy)';}
   var e3=document.getElementById('activeChip');
   if(e3){e3.style.background='';e3.style.color='#059669';}
-  render();
+  refreshView();
 }
 function toggleActive(el) {
   filters.active=!filters.active;
@@ -579,12 +652,18 @@ function toggleActive(el) {
   if(e1){e1.style.background='';e1.style.color='var(--navy)';}
   var e2=document.getElementById('todayEndChip');
   if(e2){e2.style.background='';e2.style.color='var(--accent)';}
-  render();
+  refreshView();
 }
 // 강조 인플루언서 - "공구모아 일정" 시트의 "강조표시" 컬럼(Y)에서 자동으로 채워져요
 var VIP_INSTA = ['avocado_ha_', 'kkang_twins_', 'ggumi_geonhu', 'my.77l77l', 'uzzang_zip', 'yunu_uno', 'hyun._.brother', 'mimimiso_']; // 시트 로딩 전까지 보여줄 기본값
 
 
+// 현재 활성 탭에 맞게 화면 갱신 (검색/필터 공용)
+function refreshView(){
+  var liveOn = document.getElementById('v-live') && document.getElementById('v-live').classList.contains('on');
+  if(liveOn){ renderLive(); }
+  else { render(); }
+}
 function getFiltered() {
   var q=document.getElementById('q').value.toLowerCase();
   var res=DATA.filter(function(d) {
@@ -715,6 +794,13 @@ function render() {
 function fmtISO(dt) {
   return dt.getFullYear()+'-'+(''+(dt.getMonth()+1)).padStart(2,'0')+'-'+(''+(dt.getDate())).padStart(2,'0');
 }
+var calMode = 'all'; // all | deal | live
+function setCalMode(mode, btn){
+  calMode = mode;
+  document.querySelectorAll('.cal-tg').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderCal();
+}
 function renderCal() {
   var mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('calTitle').textContent=calY+'년 '+mn[calM];
@@ -733,7 +819,10 @@ function mkCell(dt,other) {
   cell.className='cal-cell'+(other?' other':'')+(isT?' today':'')+(dow===0?' sun':dow===6?' sat':'');
   var dn=document.createElement('div');dn.className='cal-dn';dn.textContent=dt.getDate();cell.appendChild(dn);
   var iso=fmtISO(dt);
-  var evts=DATA.filter(function(d){var dp=pd(d.date);return dp&&fmtISO(dp)===iso;});
+  // 토글 모드에 따라 공구/라방 표시 결정
+  var evts=(calMode==='live')?[]:DATA.filter(function(d){var dp=pd(d.date);return dp&&fmtISO(dp)===iso;});
+  var liveEvts=(calMode==='deal')?[]:(typeof LIVE_DATA!=='undefined'?LIVE_DATA:[]).filter(function(d){var dp=pdLive(d.date);return dp&&fmtISO(dp)===iso;});
+  var shown=0;
   evts.slice(0,3).forEach(function(d){
     var ev=document.createElement('div');
     var evIid=d.insta?d.insta.replace('@',''):'';
@@ -743,9 +832,19 @@ function mkCell(dt,other) {
     ev.textContent=d.name;
     (function(item){ev.onclick=function(e){e.stopPropagation();openModal(item);};})(d);
     cell.appendChild(ev);
+    shown++;
   });
-  if(evts.length>3){
-    var m=document.createElement('div');m.className='cal-ev ev-default';m.textContent='+'+(evts.length-3)+'개';
+  // 라방 이벤트 (빨간색 계열, 📺 표시)
+  liveEvts.slice(0, Math.max(0, 3-shown>0?2:1)).forEach(function(d){
+    var ev=document.createElement('div');
+    ev.className='cal-ev cal-ev-live';
+    ev.textContent='📺 '+d.name;
+    cell.appendChild(ev);
+    shown++;
+  });
+  var totalCount=evts.length+liveEvts.length;
+  if(totalCount>shown){
+    var m=document.createElement('div');m.className='cal-ev ev-default';m.textContent='+'+(totalCount-shown)+'개';
     (function(arr,date){m.onclick=function(e){e.stopPropagation();openDayPopup(date,arr);};})(evts,dt);
     cell.appendChild(m);
   }
@@ -795,6 +894,7 @@ function switchTab(v,btn){
   btn.classList.add('on');
   document.getElementById('v-'+v).classList.add('on');
   if(v==='cal')renderCal();
+  if(v==='live')renderLive();
   if(v==='stamp'&&typeof renderStamp==='function')renderStamp();
   if(typeof gtag==='function'){
     gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
@@ -1054,6 +1154,144 @@ renderCal();
 loadFormData();
 
 // ── 오늘 내가 찾는 공구 ──
+// ── 라방(라이브방송) 일정 ──
+var LIVE_SHEET_ID = '13T2ZM-gqHoGgq9fp-AG1UAds0Kce7K7GEFFOURdtqz8';
+var LIVE_GID = '0';
+var LIVE_DATA = [];
+var liveLoaded = false;
+
+// 라방 시트에서 데이터 불러오기
+function loadLiveData() {
+  var url = 'https://docs.google.com/spreadsheets/d/'+LIVE_SHEET_ID+'/gviz/tq?tqx=out:json&gid='+LIVE_GID;
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      var json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      var rows = json.table.rows;
+      var cols = json.table.cols.map(function(c){ return (c.label||'').trim(); });
+
+      // 컬럼 위치 찾기 (대분류/소분류/날짜/시간/상품/플랫폼)
+      var iCat=-1, iSub=-1, iDate=-1, iTime=-1, iName=-1, iPlat=-1;
+      cols.forEach(function(c,i){
+        if(c==='대분류') iCat=i;
+        else if(c==='소분류') iSub=i;
+        else if(c==='날짜') iDate=i;
+        else if(c==='시간') iTime=i;
+        else if(c==='상품'||c==='상품명') iName=i;
+        else if(c==='플랫폼') iPlat=i;
+      });
+
+      LIVE_DATA = [];
+      rows.forEach(function(row){
+        var c = row.c;
+        function val(idx){ return (idx>-1 && c[idx] && c[idx].v!=null) ? c[idx].v : ''; }
+        // 날짜 셀 처리 (Date(2026,6,28) 형식이나 문자열 둘 다 대응)
+        var dateRaw = '';
+        if(iDate>-1 && c[iDate]){
+          if(c[iDate].f) dateRaw = c[iDate].f;        // 표시 형식 우선 (7/28)
+          else if(c[iDate].v!=null) dateRaw = c[iDate].v;
+        }
+        var timeRaw = '';
+        if(iTime>-1 && c[iTime]){
+          if(c[iTime].f) timeRaw = c[iTime].f;         // 표시 형식 우선 (8:30)
+          else if(c[iTime].v!=null) timeRaw = c[iTime].v;
+        }
+        var name = val(iName);
+        if(!name) return; // 상품명 없으면 건너뛰기
+        LIVE_DATA.push({
+          cat: val(iCat) || '기타',
+          sub: val(iSub) || '',
+          date: String(dateRaw),
+          time: String(timeRaw),
+          name: name,
+          plat: val(iPlat) || ''
+        });
+      });
+      liveLoaded = true;
+      // 라방 탭이 열려있으면 즉시 다시 그리기
+      if(document.getElementById('v-live').classList.contains('on')) renderLive();
+      // 캘린더가 열려있으면 라방 반영해서 다시 그리기
+      if(document.getElementById('v-cal').classList.contains('on')) renderCal();
+    })
+    .catch(function(err){ console.error('라방 데이터 로딩 실패:', err); liveLoaded = true; renderLive(); });
+}
+
+// 라방 날짜 파싱 (7/28 또는 2026-07-28 → Date)
+function pdLive(s){
+  if(!s) return null;
+  s = String(s).trim();
+  var m = s.match(/^(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  m = s.match(/^(\d{1,2})[\/.](\d{1,2})/); // 7/28
+  if(m){ var y=new Date().getFullYear(); return new Date(y, +m[1]-1, +m[2]); }
+  return null;
+}
+
+// 라방 일정 렌더링
+function renderLive(){
+  var tb = document.getElementById('liveBody');
+  if(!tb) return;
+  if(!liveLoaded){
+    tb.innerHTML='<tr><td colspan="9"><div style="padding:44px 0;text-align:center"><div class="loading-spin"></div><div style="margin-top:12px;color:var(--ink3);font-size:13px">라방 일정을 불러오는 중이에요...</div></div></td></tr>';
+    return;
+  }
+  if(!LIVE_DATA.length){
+    tb.innerHTML='<tr><td><div class="no-data"><div class="icon">&#128250;</div>등록된 라방 일정이 없어요</div></td></tr>';
+    return;
+  }
+  var today = new Date(); today.setHours(0,0,0,0);
+  // 검색어 + 필터 적용 (공구 탭과 동일한 filters 객체/검색창 공유)
+  var q = document.getElementById('q') ? document.getElementById('q').value.toLowerCase() : '';
+  var filtered = LIVE_DATA.filter(function(d){
+    var dt = pdLive(d.date);
+    // 오늘 오픈 필터
+    if(filters.today && (!dt || dt.getTime()!==today.getTime())) return false;
+    // 진행중 필터 = 지난 방송 제외
+    if(filters.active && dt && dt < today) return false;
+    // 대분류/소분류 필터
+    if(filters.cat!=='전체' && d.cat!==filters.cat) return false;
+    if(filters.sub && filters.sub!=='전체' && d.sub!==filters.sub) return false;
+    // 검색 (상품명, 플랫폼, 소분류)
+    if(q && (d.name+' '+d.plat+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  if(!filtered.length){
+    tb.innerHTML='<tr><td><div class="no-data"><div class="icon">&#128269;</div>조건에 맞는 라방 일정이 없어요</div></td></tr>';
+    return;
+  }
+  // 지난 방송은 뒤로, 다가오는 방송은 앞으로 정렬
+  var sorted = filtered.slice().sort(function(a,b){
+    var da=pdLive(a.date), db=pdLive(b.date);
+    if(!da) return 1; if(!db) return -1;
+    return da - db;
+  });
+  var html='';
+  sorted.forEach(function(d){
+    var dt = pdLive(d.date);
+    var ended = dt && dt < today;
+    var isToday = dt && dt.getTime()===today.getTime();
+    var ds = dt ? (dt.getMonth()+1)+'/'+dt.getDate() : (d.date||'—');
+    var ddBadge = '';
+    if(ended) ddBadge = '<span class="dday-badge ended-badge">&#51333;&#47308;</span>';
+    else if(isToday) ddBadge = '<span class="dday-badge today-badge">&#50724;&#45720;</span>';
+    else if(dt){
+      var diff = Math.round((dt-today)/86400000);
+      if(diff>0 && diff<=7) ddBadge = '<span class="dday-badge soon-badge">D-'+diff+'</span>';
+    }
+    var timeStr = d.time ? '<span style="font-size:11px;color:var(--ink2);font-weight:600">&#128337; '+d.time+'</span>' : '';
+    var platStr = d.plat ? '<span class="card-inf">&#128250; '+d.plat+'</span>' : '';
+    html += '<tr class="'+(ended?'ended':'')+'">'
+      +'<td><div class="card-row1">'
+      +'<span class="tag tag-'+(d.cat||'기타')+'">'+(d.cat||'—')+'</span>'
+      +(d.sub?'<span class="tag tag-'+d.sub+'">'+d.sub+'</span>':'')
+      +'<span class="card-date'+(isToday?' today':'')+'">&thinsp;'+ds+' </span>'
+      +timeStr+ddBadge
+      +'</div><div class="card-row2"><span class="item-name">'+d.name+'</span>'
+      +platStr+'</div></td></tr>';
+  });
+  tb.innerHTML = html;
+}
+
 var PICK_SHEET_ID = '1cA9bkFiRhFrUUlmfpxXOdeHTk9JsBzwA5yXTq7GlZ0U';
 
 function loadPickData() {
@@ -1150,6 +1388,7 @@ function renderPickList(items) {
 }
 
 loadPickData();
+loadLiveData();
 
 
 // ── 출석 스탬프 ──
@@ -1409,9 +1648,11 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
     <div style="font-size:13px;color:var(--ink2);line-height:1.8">
       <p><strong>(주) 스테이프레시</strong>가 운영하는 공구모아(gonggumoa.com)의 모든 콘텐츠(공구 일정, 인플루언서 정보, 상품명, 일정 등 일체)에 대해 아래와 같이 안내드립니다.</p><br>
       <p><strong>1. 저작권 및 데이터베이스권</strong><br>본 사이트에 게재된 정보는 (주) 스테이프레시가 자체적으로 수집·정리·구성한 데이터베이스로, 저작권법상 데이터베이스제작자의 권리로 보호받습니다.</p><br>
-      <p><strong>2. 무단 수집·재배포 금지</strong><br>사전 서면 동의 없이 본 사이트의 콘텐츠를 크롤링, 스크래핑 등 자동화된 방법으로 수집하거나, 이를 복제·가공하여 타 서비스에 게재·재배포하는 행위를 금지합니다.</p><br>
-      <p><strong>3. 위반 시 조치</strong><br>본 약관을 위반한 무단 수집·재배포 행위가 확인될 경우, 민사상 손해배상 청구 및 형사 고소 등 법적 조치를 취할 수 있습니다.</p><br>
-      <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
+      <p><strong>2. 무단 수집·재배포 금지</strong><br>사전 서면 동의 없이 본 사이트의 콘텐츠를 크롤링, 스크래핑 등 자동화된 방법으로 수집하거나, 이를 복제·가공하여 타 서비스에 게재·재배포하는 행위를 금지합니다. 이는 사람이 직접 수집하는 경우와 프로그램·봇을 이용하는 경우를 모두 포함합니다.</p><br>
+      <p><strong>3. 기술적 보호조치</strong><br>본 사이트는 무단 수집을 방지하기 위해 접근 로그 기록, 접속 IP 및 네트워크(ASN) 차단, 자동화 트래픽 탐지 등의 기술적 조치를 운영하고 있습니다. 비정상적 접근이 감지될 경우 사전 통보 없이 접속을 차단할 수 있습니다.</p><br>
+      <p><strong>4. 데이터 식별 및 추적</strong><br>본 사이트의 콘텐츠에는 무단 복제 여부를 식별할 수 있는 기술적 표식이 포함되어 있습니다. 타 서비스에서 본 사이트의 데이터가 무단으로 사용된 사실이 확인될 경우, 이를 무단 수집·복제의 증거로 활용합니다.</p><br>
+      <p><strong>5. 위반 시 조치</strong><br>본 약관을 위반한 무단 수집·재배포 행위가 확인될 경우, 민사상 손해배상 청구 및 형사 고소 등 법적 조치를 취할 수 있습니다. 저작권법상 데이터베이스제작자의 권리 침해는 손해배상 및 형사처벌의 대상이 됩니다.</p><br>
+      <p><strong>6. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
       <p style="color:var(--ink3);font-size:12px">대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
     </div>
   </div>
@@ -1462,22 +1703,35 @@ if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
   }
 })();
 (function(){
-  var btn = document.getElementById('toTop');
-  if(!btn) return;
-  // 클릭 시 맨 위로 (여러 방식 병행 — 브라우저 호환)
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-    try { window.scrollTo({top:0, behavior:'smooth'}); } catch(err) { window.scrollTo(0,0); }
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  });
-  // 스크롤 감지
-  function onScroll(){
-    var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    if(y > 400){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+  function initToTop(){
+    var btn = document.getElementById('toTop');
+    if(!btn) return;
+    // 클릭 → 맨 위로 (부드럽게, 실패 시 즉시)
+    btn.onclick = function(e){
+      if(e) e.preventDefault();
+      try {
+        window.scrollTo({top:0, behavior:'smooth'});
+      } catch(err) {}
+      // 병행: 즉시 이동 (smooth 미지원/미작동 브라우저 대비)
+      window.scrollTo(0,0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      return false;
+    };
+    // 스크롤 감지 → 400px 넘으면 버튼 표시
+    function onScroll(){
+      var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      if(y > 400){ btn.classList.add('show'); } else { btn.classList.remove('show'); }
+    }
+    window.addEventListener('scroll', onScroll, {passive:true});
+    document.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
   }
-  window.addEventListener('scroll', onScroll, {passive:true});
-  onScroll();
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', initToTop);
+  } else {
+    initToTop();
+  }
 })();
 </script>
 </body>
