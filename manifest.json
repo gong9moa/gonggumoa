@@ -1,0 +1,30 @@
+{
+  "name": "공구모아 - 공구정보&핫딜 모음",
+  "short_name": "공구모아",
+  "description": "인플루언서 공동구매 일정을 한눈에 모아보는 서비스",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f3ef",
+  "theme_color": "#224C9E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
