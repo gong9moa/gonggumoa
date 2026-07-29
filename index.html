@@ -135,6 +135,7 @@ main{max-width:1080px;margin:0 auto;padding:1.5rem 1.25rem 5rem}
 .chip:hover{border-color:var(--ink3)}
 .chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:1.25rem}
+.tab{flex:1;justify-content:center}
 .tab{padding:9px 20px;font-size:14px;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;color:var(--ink3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1.5px;display:flex;align-items:center;gap:6px;transition:all .15s}
 .tab:hover{color:var(--ink2)}
 .tab.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:500}
@@ -298,7 +299,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   .filter-row::-webkit-scrollbar{display:none}
   .filter-label{font-size:11px;flex-shrink:0}
   .chip{font-size:12px;padding:5px 11px;flex-shrink:0}
-  .tab{padding:8px 14px;font-size:13px}
+  .tab{padding:8px 4px;font-size:12.5px;gap:4px}
   .table-wrap{border:none;background:none;border-radius:0}
   table,thead,tbody,th,td,tr{display:block}
   thead{display:none}
@@ -449,7 +450,7 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
   <div class="tabs">
     <button class="tab on" onclick="switchTab('list',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-      공구 일정
+      공구일정
     </button>
     <button class="tab" onclick="switchTab('cal',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -457,11 +458,11 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
     </button>
     <button class="tab" onclick="switchTab('pick',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      오늘 핫딜
+      핫딜
     </button>
     <button class="tab" onclick="switchTab('live',this)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-      라방 일정
+      라방
     </button>
 
 
@@ -1523,12 +1524,7 @@ if('serviceWorker' in navigator) {
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   deferredPrompt = e;
-  // 이미 설치됐거나 닫은 적 있으면 안 보여줌
-  if(!localStorage.getItem('pwa_dismissed')) {
-    setTimeout(function() {
-      document.getElementById('pwaBanner').classList.add('show');
-    }, 3000);
-  }
+  // 자동 배너 팝업은 표시하지 않음 (거슬림 방지)
 });
 
 document.getElementById('pwaInstallBtn').addEventListener('click', function() {
@@ -1550,13 +1546,8 @@ function closePwaBanner() {
 }
 
 // iOS 감지 - Safari에서 직접 안내
+// iOS 자동 배너도 표시하지 않음 (거슬림 방지)
 var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-var isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
-if(isIOS && !isInStandaloneMode && !localStorage.getItem('pwa_dismissed')) {
-  setTimeout(function() {
-    document.getElementById('pwaBanner').classList.add('show');
-  }, 3000);
-}
 </script>
 
 <style>
