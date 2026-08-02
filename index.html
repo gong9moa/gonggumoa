@@ -550,40 +550,9 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 
 var DATA = [];
 
-// ── 기본 데이터를 프록시를 통해 조각조각(청크) 받아오기 ──
-// (예전엔 801개 데이터가 이 자리에 통째로 평문으로 박혀 있었어요.
-//  이제는 별도 구글시트 + Apps Script 웹앱을 통해서만 받아오고,
-//  한 번에 100개씩, 약간의 지연을 두고 가져와요.)
-var BASE_DATA_PROXY_URL = 'https://script.google.com/macros/s/여기에_배포된_웹앱_URL을_넣으세요/exec';
+// (기본 데이터는 이제 FORM_PROXY(구글폼 연동 시트)에서 모두 받아와요.
+//  예전에 쓰던 별도 BASE 데이터 로딩은 제거했어요.)
 
-function loadBaseDataChunk(offset) {
-  offset = offset || 0;
-  fetch(BASE_DATA_PROXY_URL + '?offset=' + offset + '&limit=100')
-    .then(function (r) { return r.json(); })
-    .then(function (json) {
-      if (json.error) { console.log('기본 데이터 로드 실패:', json.error); return; }
-      DATA = DATA.concat(json.items);
-      // 한달 이상 지난 공구 제거 + 중복 제거 (청크 들어올 때마다 적용)
-      (function(){
-        var oma = new Date(TODAY); oma.setMonth(oma.getMonth()-1);
-        DATA = DATA.filter(function(d){ var dt=pd(d.date); return !dt || dt>=oma; });
-        var seen={}, deduped=[];
-        DATA.forEach(function(d){
-          var k=(d.name||'')+(d.date||'');
-          if(!seen[k]){seen[k]=true;deduped.push(d);}
-        });
-        DATA = deduped;
-      })();
-      render(); renderCal();
-      if (json.hasMore) {
-        setTimeout(function () { loadBaseDataChunk(offset + json.limit); }, 250);
-      } else {
-        console.log('기본 데이터 ' + DATA.length + '건 전체 로드 완료');
-      }
-    })
-    .catch(function (e) { console.log('기본 데이터 로드 중 에러:', e); });
-}
-loadBaseDataChunk(0);
 var filters = {cat:'전체', sub:'전체', today:false, todayEnd:false, active:false};
 var calY, calM;
 var TODAY = new Date();
@@ -1527,7 +1496,8 @@ window.addEventListener('beforeinstallprompt', function(e) {
   // 자동 배너 팝업은 표시하지 않음 (거슬림 방지)
 });
 
-document.getElementById('pwaInstallBtn').addEventListener('click', function() {
+var pwaBtn = document.getElementById('pwaInstallBtn');
+if(pwaBtn) pwaBtn.addEventListener('click', function() {
   if(!deferredPrompt) {
     // iOS 안내
     alert('Safari에서 하단 공유 버튼 → "홈 화면에 추가"를 눌러주세요!');
