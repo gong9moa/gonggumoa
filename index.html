@@ -176,6 +176,8 @@ tbody tr:hover{background:var(--bg)}
 .card-row2{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .card-row2 .item-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card-inf{font-size:12px;color:var(--ink2);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:3px}
+.plat-link{color:#2d5fd6 !important;text-decoration:none;cursor:pointer}
+.plat-link:hover{text-decoration:underline}
 tr.ended td{color:var(--ink3)!important}
 tr.ended .item-name{color:var(--ink3)}
 tr.ended .tag{opacity:.45}
@@ -1089,7 +1091,9 @@ var FORM_PROXY_URL = 'https://script.google.com/macros/s/AKfycbwvqvbGVLOUBhIqITL
 
 function loadFormDataChunk(offset) {
   offset = offset || 0;
-  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=3000')
+  // 첫 청크는 작게(빠른 첫 화면), 이후는 크게(적은 왕복으로 나머지 로드)
+  var chunkLimit = (offset === 0) ? 600 : 3000;
+  fetch(FORM_PROXY_URL + '?offset=' + offset + '&limit=' + chunkLimit)
     .then(function (r) { return r.json(); })
     .then(function (json) {
       if (json.error) { console.log('폼 데이터 로드 실패:', json.error); return; }
@@ -1108,7 +1112,7 @@ function loadFormDataChunk(offset) {
       render(); renderCal();
 
       if (json.hasMore) {
-        setTimeout(function () { loadFormDataChunk(offset + json.limit); }, 0);
+        setTimeout(function () { loadFormDataChunk(offset + json.items.length); }, 0);
       } else {
         console.log('구글 폼 데이터 ' + (offset + json.items.length) + '건 로드 완료');
       }
@@ -1190,14 +1194,28 @@ function loadLiveData() {
 function pdLive(s){
   if(!s) return null;
   s = String(s).trim();
-  var m = s.match(/^(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/);
+  // 2026-08-01, 2026. 8. 1, 2026.8.1, 2026/8/1 등 (연도 포함, 공백 허용)
+  var m = s.match(/^(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2})/);
   if(m) return new Date(+m[1], +m[2]-1, +m[3]);
-  m = s.match(/^(\d{1,2})[\/.](\d{1,2})/); // 7/28
+  // 7/28, 8. 1, 8.1 등 (연도 없음, 공백 허용)
+  m = s.match(/^(\d{1,2})\s*[\/.]\s*(\d{1,2})/);
   if(m){ var y=new Date().getFullYear(); return new Date(y, +m[1]-1, +m[2]); }
   return null;
 }
 
 // 라방 일정 렌더링
+// 플랫폼 이름 → 방송 편성표 링크 매핑
+function getPlatformUrl(plat){
+  if(!plat) return '';
+  var p = plat.replace(/\s/g,'').toLowerCase();
+  if(p.indexOf('cj')>-1 || p.indexOf('온스타일')>-1 || p.indexOf('cjon')>-1){
+    return 'https://display.cjonstyle.com/p/tv/tvSchedule';
+  }
+  if(p.indexOf('카카오')>-1 || p.indexOf('kakao')>-1){
+    return 'https://shoppinglive.kakao.com/calendar?t_src=shopping_live&t_ch=home';
+  }
+  return '';
+}
 function renderLive(){
   var tb = document.getElementById('liveBody');
   if(!tb) return;
@@ -1229,11 +1247,20 @@ function renderLive(){
     tb.innerHTML='<tr><td><div class="no-data"><div class="icon">&#128269;</div>조건에 맞는 라방 일정이 없어요</div></td></tr>';
     return;
   }
-  // 지난 방송은 뒤로, 다가오는 방송은 앞으로 정렬
+  // 정렬: 오늘·다가오는 방송을 위로(날짜 오름차순), 지난 방송은 맨 아래로(최근 것부터)
   var sorted = filtered.slice().sort(function(a,b){
     var da=pdLive(a.date), db=pdLive(b.date);
     if(!da) return 1; if(!db) return -1;
-    return da - db;
+    var aEnded = da < today, bEnded = db < today;
+    // 안 지난 것 vs 지난 것 → 안 지난 게 항상 위
+    if(aEnded !== bEnded) return aEnded ? 1 : -1;
+    if(!aEnded){
+      // 둘 다 안 지남 → 가까운 날짜가 위 (오름차순)
+      return da - db;
+    } else {
+      // 둘 다 지남 → 최근에 지난 게 위 (내림차순)
+      return db - da;
+    }
   });
   var html='';
   sorted.forEach(function(d){
@@ -1249,7 +1276,15 @@ function renderLive(){
       if(diff>0 && diff<=7) ddBadge = '<span class="dday-badge soon-badge">D-'+diff+'</span>';
     }
     var timeStr = d.time ? '<span style="font-size:11px;color:var(--ink2);font-weight:600">&#128337; '+d.time+'</span>' : '';
-    var platStr = d.plat ? '<span class="card-inf">&#128250; '+d.plat+'</span>' : '';
+    var platStr = '';
+    if(d.plat){
+      var platUrl = getPlatformUrl(d.plat);
+      if(platUrl){
+        platStr = '<a class="card-inf plat-link" href="'+platUrl+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">&#128250; '+d.plat+' &#8599;</a>';
+      } else {
+        platStr = '<span class="card-inf">&#128250; '+d.plat+'</span>';
+      }
+    }
     html += '<tr class="'+(ended?'ended':'')+'">'
       +'<td><div class="card-row1">'
       +'<span class="tag tag-'+(d.cat||'기타')+'">'+(d.cat||'—')+'</span>'
@@ -1621,7 +1656,7 @@ var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 <script>
 (function(){
   // 공구모아 PICK 인플루언서 (랜덤 순서)
-  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["유누유노맘", "yunu_uno"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["강둥맘", "kkang_twins_"]];
+  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["유누유노맘", "yunu_uno"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["강둥맘", "kkang_twins_"], ["달콤맘", "dalkom__mom"], ["미대엄마", "artist._.mom"]];
   var ig = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="url(#pickIgGrad)" stroke-width="2.1"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="1.3" fill="url(#pickIgGrad)" stroke="none"/></svg>';
   var a = PICK_INF.slice();
   for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
