@@ -852,9 +852,18 @@ function pd(s) {
 function fmt(dt) {
   return dt.getFullYear()+'-'+(''+(dt.getMonth()+1)).padStart(2,'0')+'-'+(''+(dt.getDate())).padStart(2,'0');
 }
+// 종료일 구하기: 시트 end_date가 있으면 그걸, 없으면 오픈일+3일 (fallback)
+function getEndDate(d) {
+  if(d.end_date){
+    var ed=pd(d.end_date);
+    if(ed) return ed;
+  }
+  var dt=pd(d.date); if(!dt) return null;
+  var e=new Date(dt); e.setDate(e.getDate()+3); return e;
+}
 function isEnded(d) {
-  var dt=pd(d.date); if(!dt) return false;
-  var e=new Date(dt); e.setDate(e.getDate()+3); return e<TODAY;
+  var e=getEndDate(d); if(!e) return false;
+  return e<TODAY;
 }
 function dday(d) {
   if(!d) return '';
@@ -924,8 +933,8 @@ function getFiltered() {
     if(filters.today&&(!dt||dt.getTime()!==TODAY.getTime())) return false;
     if(filters.active&&isEnded(d)) return false;
     if(filters.todayEnd){
-      if(!dt) return false;
-      var end=new Date(dt); end.setDate(end.getDate()+3); end.setHours(0,0,0,0);
+      var end=getEndDate(d); if(!end) return false;
+      end=new Date(end); end.setHours(0,0,0,0);
       if(end.getTime()!==TODAY.getTime()) return false;
     }
     if(filters.cat!=='전체'&&d.cat!==filters.cat) return false;
@@ -985,7 +994,9 @@ function render() {
     var sdt=pd(DATA[si].date); if(!sdt) continue;
     var sTime=sdt.getTime();
     if(sTime===tTime) cToday++;
-    var send=new Date(sdt); send.setDate(send.getDate()+3); send.setHours(0,0,0,0);
+    // 종료일: 시트 종료일 우선, 없으면 오픈일+3일
+    var send=getEndDate(DATA[si]); if(!send) continue;
+    send=new Date(send); send.setHours(0,0,0,0);
     var eTime=send.getTime();
     if(eTime===tTime) cEnd++;
     if(sTime<=tTime && eTime>=tTime) cActive++;
@@ -1002,9 +1013,8 @@ function render() {
     var isT=dt&&dt.getTime()===TODAY.getTime();
     var isS=dt&&!isT&&(dt-TODAY)/86400000<=3&&dt>=TODAY;
     var ds=dt?(dt.getMonth()+1)+'/'+(dt.getDate()):(d.date||'—');
-    // 마감일 계산 (오픈일+3일, 종료된 것 제외)
-    var endDt = dt ? new Date(dt) : null;
-    if(endDt) endDt.setDate(endDt.getDate()+3);
+    // 마감일 계산 (시트 종료일 우선, 없으면 오픈일+3일)
+    var endDt = getEndDate(d);
     var endDs = (endDt&&!ended) ? '~'+(endDt.getMonth()+1)+'/'+(endDt.getDate()) : '';
     var iid=d.insta?d.insta.replace('@',''):'';
     var isVip=VIP_INSTA.length>0&&iid&&VIP_INSTA.indexOf(iid.toLowerCase())>-1;
