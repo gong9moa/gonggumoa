@@ -1487,7 +1487,11 @@ function calStamp(dt){
   return dt.getUTCFullYear()+p(dt.getUTCMonth()+1)+p(dt.getUTCDate())
        +'T'+p(dt.getUTCHours())+p(dt.getUTCMinutes())+'00Z';
 }
-function alarmTitle(d){ return '[공구모아] '+(d.name||'공구')+' 오픈'; }
+// 캘린더 일정 제목: [공구모아] 인플루언서 상품명
+function alarmTitle(d){
+  var inf = (d.inf || '').trim();
+  return '[공구모아] ' + (inf ? inf + ' ' : '') + (d.name || '공구');
+}
 function alarmBody(d){
   var lines = [];
   lines.push((d.inf||'인플루언서')+' 공구가 열려요.');
@@ -1566,7 +1570,13 @@ function rowAlarmClick(idx, btn){
 }
 
 // 이 공구에 알림 버튼을 보여줄지 (PICK 인플루언서 + 아직 안 끝난 공구)
-function canAlarm(d, isVip, ended, dt){ return !!(isVip && !ended && dt); }
+// 알림 버튼을 보여줄지 판정
+//  - PICK 인플루언서여야 하고
+//  - 아직 안 끝난 공구여야 하고
+//  - 오픈일이 오늘이거나 앞으로여야 해요 (이미 열린 공구에 "오픈 알림"은 의미가 없어서)
+function canAlarm(d, isVip, ended, dt){
+  return !!(isVip && !ended && dt && dt.getTime() >= TODAY.getTime());
+}
 
 function openModal(d) {
   var dt=pd(d.date), dateStr=dt?(dt.getMonth()+1)+'월 '+dt.getDate()+'일':(d.date||'');
@@ -1600,7 +1610,7 @@ function openModal(d) {
       buyBtn.style.display = 'none';
     }
   }
-  if(al) al.style.display = (isPick && dt && !isEnded(d)) ? 'block' : 'none';
+  if(al) al.style.display = canAlarm(d, isPick, isEnded(d), dt) ? 'block' : 'none';
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
