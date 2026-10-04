@@ -1512,6 +1512,20 @@ function googleCalUrl(d){
     +'&dates='+calStamp(s)+'/'+calStamp(e)
     +'&details='+encodeURIComponent(alarmBody(d));
 }
+// 아이폰용 캘린더 파일 주소 (프록시가 진짜 .ics 파일로 내려줌)
+// 브라우저에서 파일을 만들어 다운로드시키는 방식은 애플이 보안상 막아놔서 아이폰에선 아무 반응이 없어요.
+function icsUrlFor(d){
+  var s = getOpenDateTime(d); if(!s) return '';
+  var e = new Date(s.getTime()+60*60*1000);
+  var link = inpockUrlFor(d) || d.url || 'https://gonggumoa.com/';
+  return FORM_PROXY_URL + '?ics=1'
+    + '&t=' + encodeURIComponent(alarmTitle(d))
+    + '&s=' + calStamp(s)
+    + '&e=' + calStamp(e)
+    + '&d=' + encodeURIComponent(alarmBody(d))
+    + '&u=' + encodeURIComponent(link);
+}
+
 function icsFor(d){
   var s = getOpenDateTime(d); if(!s) return '';
   var e = new Date(s.getTime()+60*60*1000);
@@ -1540,13 +1554,11 @@ function doCalendarSave(d){
   if(!d) return '';
   if(typeof gtag==='function') gtag('event','alarm_calendar',{event_label:d.name||''});
   if(ggmIsIOS()){
-    var blob = new Blob([icsFor(d)], {type:'text/calendar;charset=utf-8'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = '공구모아-알림.ics';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
-    return '캘린더로 보냈어요. "추가"를 눌러주세요';
+    var u = icsUrlFor(d);
+    if(u){
+      window.location.href = u;   // 진짜 .ics 주소로 이동 → 아이폰 캘린더 앱이 받아요
+      return '캘린더 앱으로 넘어가요. "추가"를 눌러주세요';
+    }
   }
   window.open(googleCalUrl(d), '_blank', 'noopener');
   return '구글 캘린더가 열렸어요. "저장"을 눌러주세요';
@@ -1554,8 +1566,19 @@ function doCalendarSave(d){
 
 // 상세 팝업의 캘린더 저장 버튼
 function saveToCalendar(){
-  var msg = doCalendarSave(window._alarmItem);
-  if(msg) showAlarmDone(msg);
+  var d = window._alarmItem;
+  var msg = doCalendarSave(d);
+  if(!msg) return;
+  var el = document.getElementById('m-alarm-done');
+  if(!el) return;
+  el.innerHTML = '✅ ' + qnaEsc(msg);
+  // 아이폰은 브라우저 환경에 따라 캘린더 앱이 안 열릴 수 있어서 대체 경로를 같이 안내
+  if(ggmIsIOS() && d){
+    el.innerHTML += '<div style="margin-top:6px;font-weight:500">안 열리면 '
+      + '<a href="' + googleCalUrl(d) + '" target="_blank" rel="noopener" '
+      + 'style="color:var(--accent);text-decoration:underline">구글 캘린더로 저장</a>하세요</div>';
+  }
+  el.classList.add('show');
 }
 
 // 목록 행의 오픈 알림 받기 버튼
