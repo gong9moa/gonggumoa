@@ -1232,8 +1232,16 @@ function refreshView(){
   if(liveOn){ renderLive(); }
   else { render(); }
 }
+// 보이지 않는 워터마크 문자를 걷어내요 (검색·비교할 때만).
+// 프록시가 크롤링 추적용으로 상품명 한가운데에 폭 없는 문자를 심어두는데,
+// 그대로 두면 '룰루맘' 같은 짧은 이름이 '룰'+보이지않는문자+'루맘'이 돼서 검색에 안 걸려요.
+// 화면에 보여주는 글자는 건드리지 않으니 워터마크 기능은 그대로 살아있어요.
+function stripInvisible(s){
+  return String(s == null ? '' : s).replace(/[\u200B-\u200D\u2060\uFEFF]/g, '');
+}
+
 function getFiltered() {
-  var q=document.getElementById('q').value.toLowerCase();
+  var q=stripInvisible(document.getElementById('q').value).toLowerCase();
   var res=DATA.filter(function(d) {
     var dt=pd(d.date);
     if(filters.today&&(!dt||dt.getTime()!==TODAY.getTime())) return false;
@@ -1245,7 +1253,7 @@ function getFiltered() {
     }
     if(filters.cat!=='전체'&&d.cat!==filters.cat) return false;
     if(filters.sub&&filters.sub!=='전체'&&d.sub!==filters.sub) return false;
-    if(q&&(d.name+' '+d.inf+' '+d.insta+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
+    if(q&&stripInvisible(d.name+' '+d.inf+' '+d.insta+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
     return true;
   });
   // 대분류 → 소분류 → 날짜 순 (종료된 것은 항상 맨 뒤)
@@ -1552,7 +1560,7 @@ function showAlarmDone(msg){
 // 캘린더 저장 실행 (아이폰은 .ics 파일, 그 외는 구글 캘린더). 안내 문구를 돌려줌
 function doCalendarSave(d){
   if(!d) return '';
-  if(typeof gtag==='function') gtag('event','alarm_calendar',{event_label:d.name||''});
+  if(typeof gtag==='function') gtag('event','alarm_calendar',{event_label:stripInvisible(d.name)||''});
   if(ggmIsIOS()){
     var u = icsUrlFor(d);
     if(u){
@@ -2174,7 +2182,7 @@ function renderLive(){
   }
   var today = new Date(); today.setHours(0,0,0,0);
   // 검색어 + 필터 적용 (공구 탭과 동일한 filters 객체/검색창 공유)
-  var q = document.getElementById('q') ? document.getElementById('q').value.toLowerCase() : '';
+  var q = document.getElementById('q') ? stripInvisible(document.getElementById('q').value).toLowerCase() : '';
   var filtered = LIVE_DATA.filter(function(d){
     var dt = pdLive(d.date);
     // 오늘 오픈 필터
@@ -2185,7 +2193,7 @@ function renderLive(){
     if(filters.cat!=='전체' && d.cat!==filters.cat) return false;
     if(filters.sub && filters.sub!=='전체' && d.sub!==filters.sub) return false;
     // 검색 (상품명, 플랫폼, 소분류)
-    if(q && (d.name+' '+d.plat+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
+    if(q && stripInvisible(d.name+' '+d.plat+' '+d.sub).toLowerCase().indexOf(q)<0) return false;
     return true;
   });
   if(!filtered.length){
