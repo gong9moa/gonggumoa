@@ -524,6 +524,8 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .alarm-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:.7rem .5rem;border-radius:var(--radius);border:1px solid var(--navy);background:var(--surface);color:var(--navy);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:background .12s,color .12s}
 .alarm-btn svg{width:14px;height:14px;flex-shrink:0}
 .alarm-btn:active{background:var(--navy);color:var(--surface)}
+.alarm-btn.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.alarm-btn[disabled]{opacity:.55;cursor:default}
 .alarm-help{margin-top:8px;font-size:11px;line-height:1.65;color:var(--ink3);text-align:center}
 .alarm-help b{color:var(--ink2);font-weight:600}
 .alarm-soon{margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);color:var(--ink3);font-size:10.5px;line-height:1.6}
@@ -1114,13 +1116,13 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
     <div class="modal-alarm" id="m-alarm" style="display:none">
       <div class="alarm-label" id="m-alarm-label">공구모아 PICK 전용</div>
       <div class="alarm-btns">
+        <button class="alarm-btn" id="m-push" type="button"></button>
         <button class="alarm-btn" id="m-cal" type="button"></button>
       </div>
       <div class="alarm-help">
-        버튼을 누르면 캘린더 앱이 열려요.<br>
-        그 안에서 <b>저장</b>까지 눌러야 등록돼요.<br>
-        공구가 열리는 시각에 폰이 알려줘요.
-        <div class="alarm-soon">웹푸시 업데이트 예정<br>조금만 기다려주세요</div>
+        <b>알림 받기</b> — 오픈 시각에 폰으로 알려드려요.<br>
+        <b>캘린더 저장</b> — 캘린더 앱에서 <b>저장</b>까지 눌러야 등록돼요.
+        <div class="alarm-soon" id="m-alarm-ios" style="display:none">아이폰은 공유 &#8594; <b>홈 화면에 추가</b> 후<br>그 아이콘으로 들어와야 알림을 받을 수 있어요</div>
       </div>
       <div class="alarm-done" id="m-alarm-done"></div>
     </div>
@@ -1457,6 +1459,10 @@ var ICON_CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 var ICON_STAR = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:11px;height:11px"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.3 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z"/></svg>';
 
 var ALARM_DEFAULT_HOUR = 10, ALARM_DEFAULT_MIN = 0;
+// 웹푸시 + 아이폰 캘린더파일을 담당하는 Cloudflare Worker 주소
+var PUSH_API = 'https://late-tooth-0541.shineggy1214.workers.dev';
+// 푸시 공개키. 공개돼도 괜찮은 값이에요 (비밀키는 Worker에만 있어요)
+var VAPID_PUBLIC = 'BE7Zm2ryAvm330EUnrrD7DUak3rdacd_Bx5QtohYcv6aiwegnqQPmTonoi53Om8E8yX2FMEBhsRxbWqlQ6Fp_Zs';
 
 // "10:00", "10시", "오전 10시", "오후 2시 30분", "14:30" 등을 {h,m}으로
 function parseOpenTime(s){
@@ -1526,8 +1532,8 @@ function icsUrlFor(d){
   var s = getOpenDateTime(d); if(!s) return '';
   var e = new Date(s.getTime()+60*60*1000);
   var link = inpockUrlFor(d) || d.url || 'https://gonggumoa.com/';
-  return FORM_PROXY_URL + '?ics=1'
-    + '&t=' + encodeURIComponent(alarmTitle(d))
+  return PUSH_API + '/ics'
+    + '?t=' + encodeURIComponent(alarmTitle(d))
     + '&s=' + calStamp(s)
     + '&e=' + calStamp(e)
     + '&d=' + encodeURIComponent(alarmBody(d))
@@ -1551,10 +1557,10 @@ function ggmIsIOS(){
   return /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
-function showAlarmDone(msg){
+function showAlarmDone(msg, isError){
   var el = document.getElementById('m-alarm-done');
   if(!el) return;
-  el.textContent = '✅ '+msg;
+  el.textContent = (isError ? '⚠️ ' : '✅ ') + msg;
   el.classList.add('show');
 }
 // 캘린더 저장 실행 (아이폰은 .ics 파일, 그 외는 구글 캘린더). 안내 문구를 돌려줌
@@ -1600,6 +1606,150 @@ function rowAlarmClick(idx, btn){
   setTimeout(function(){ btn.innerHTML = old; btn.classList.remove('saved'); }, 3000);
 }
 
+
+// ── 웹푸시: 오픈 시각에 폰으로 알림 ──
+// Cloudflare Worker가 예약을 받아 보관했다가, 그 시각에 알림을 쏴줘요.
+// 아이폰은 애플이 사파리 탭에서 웹푸시를 막아놔서, 홈 화면에 추가한 경우에만 됩니다.
+window._pushKeys = [];   // 이 폰이 이미 예약해둔 공구들
+
+function pushSupported(){
+  return ('serviceWorker' in navigator) && ('PushManager' in window)
+    && ('Notification' in window) && typeof Notification.requestPermission === 'function';
+}
+// 공개키 문자열을 브라우저가 요구하는 바이트 배열로
+function urlB64ToU8(s){
+  var pad = new Array((4 - s.length % 4) % 4 + 1).join('=');
+  var b64 = (s + pad).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(b64), out = new Uint8Array(raw.length);
+  for(var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+// 공구 하나를 가리키는 고유 이름 (같은 공구 중복 예약 방지). 워터마크는 지우고 만들어요
+function dealKeyFor(d){
+  return (stripInvisible(d.inf || '') + '|' + stripInvisible(d.name || '') + '|' + (d.date || '')).slice(0, 180);
+}
+// 알림에 들어갈 한 줄 설명 (캘린더 설명과 달리 짧게)
+function pushBodyFor(d){
+  var t = fmtOpenTime(d);
+  return (t ? t + ' ' : '') + '공구가 열렸어요. 눌러서 바로 가기';
+}
+function pushPost(path, body){
+  return fetch(PUSH_API + path, {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); });
+}
+// 이 브라우저의 푸시 구독 정보. create=true면 없을 때 새로 만들어요
+function getPushSub(create){
+  if(!pushSupported()) return Promise.resolve(null);
+  return navigator.serviceWorker.ready.then(function(reg){
+    return reg.pushManager.getSubscription().then(function(sub){
+      if(sub || !create) return sub;
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToU8(VAPID_PUBLIC)
+      });
+    });
+  });
+}
+// 이미 예약해둔 공구 목록을 서버에서 받아와 버튼 모양에 반영
+function loadPushKeys(){
+  if(!pushSupported() || Notification.permission !== 'granted') return;
+  getPushSub(false).then(function(sub){
+    if(!sub) return null;
+    return pushPost('/mine', {endpoint: sub.endpoint}).then(function(j){
+      if(j && j.ok) window._pushKeys = j.keys || [];
+      return null;
+    });
+  }).catch(function(){});
+}
+function isPushOn(d){
+  return !!(d && window._pushKeys.indexOf(dealKeyFor(d)) > -1);
+}
+// 팝업을 열 때마다 알림 버튼 모양 맞추기
+function updatePushBtn(d){
+  var btn = document.getElementById('m-push');
+  var iosNote = document.getElementById('m-alarm-ios');
+  if(!btn) return;
+  if(!pushSupported()){
+    // 아이폰이면 버튼을 남겨두고 "홈 화면에 추가" 안내를 띄워요. 그 외 브라우저는 버튼 자체를 숨김
+    btn.style.display = ggmIsIOS() ? 'flex' : 'none';
+    if(iosNote) iosNote.style.display = ggmIsIOS() ? 'block' : 'none';
+  } else {
+    btn.style.display = 'flex';
+    if(iosNote) iosNote.style.display = 'none';
+  }
+  btn.disabled = false;
+  if(isPushOn(d)){
+    btn.classList.add('on');
+    btn.innerHTML = ICON_CHECK + '알림 켜짐';
+  } else {
+    btn.classList.remove('on');
+    btn.innerHTML = ICON_BELL + '알림 받기';
+  }
+}
+// 상세 팝업의 "알림 받기" 버튼
+function pushAlarmClick(){
+  var d = window._alarmItem;
+  var btn = document.getElementById('m-push');
+  if(!d || !btn) return;
+
+  if(!pushSupported()){
+    showAlarmDone(ggmIsIOS()
+      ? '아이폰은 공유 → "홈 화면에 추가" 후 그 아이콘으로 들어오면 알림을 받을 수 있어요'
+      : '이 브라우저는 알림을 지원하지 않아요. 캘린더 저장을 이용해주세요', true);
+    return;
+  }
+  if(btn.classList.contains('on')){ cancelPushAlarm(d, btn); return; }   // 켜져 있으면 끄기
+
+  var when = getOpenDateTime(d);
+  if(!when){ showAlarmDone('오픈 일시를 알 수 없어요', true); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = ICON_BELL + '등록 중…';
+
+  Promise.resolve(Notification.requestPermission()).then(function(perm){
+    if(perm !== 'granted') throw new Error('알림이 꺼져 있어요. 브라우저 설정에서 공구모아 알림을 허용해주세요');
+    return getPushSub(true);
+  }).then(function(sub){
+    if(!sub) throw new Error('알림 등록에 실패했어요');
+    var j = sub.toJSON();
+    return pushPost('/subscribe', {
+      subscription: {endpoint: j.endpoint, keys: {p256dh: j.keys.p256dh, auth: j.keys.auth}},
+      dealKey: dealKeyFor(d),
+      title: alarmTitle(d),
+      body: pushBodyFor(d),
+      url: inpockUrlFor(d) || d.url || 'https://gonggumoa.com/',
+      sendAt: Math.floor(when.getTime() / 1000)
+    });
+  }).then(function(res){
+    if(!res || !res.ok) throw new Error((res && res.error) || '알림 등록에 실패했어요');
+    var k = dealKeyFor(d);
+    if(window._pushKeys.indexOf(k) < 0) window._pushKeys.push(k);
+    updatePushBtn(d);
+    showAlarmDone('알림 예약 완료! ' + (fmtOpenTime(d) || '오픈 시각') + '에 알려드릴게요');
+    if(typeof gtag === 'function') gtag('event', 'alarm_push', {event_label: stripInvisible(d.name) || ''});
+  })['catch'](function(err){
+    updatePushBtn(d);
+    showAlarmDone(err && err.message ? err.message : '알림 등록에 실패했어요', true);
+  });
+}
+// 예약 취소
+function cancelPushAlarm(d, btn){
+  btn.disabled = true;
+  getPushSub(false).then(function(sub){
+    if(!sub) return {ok: true};
+    return pushPost('/unsubscribe', {endpoint: sub.endpoint, dealKey: dealKeyFor(d)});
+  }).then(function(){
+    var k = dealKeyFor(d), i = window._pushKeys.indexOf(k);
+    if(i > -1) window._pushKeys.splice(i, 1);
+    updatePushBtn(d);
+    showAlarmDone('알림을 껐어요');
+  })['catch'](function(){
+    updatePushBtn(d);
+    showAlarmDone('알림 끄기에 실패했어요', true);
+  });
+}
+
 // 이 공구에 알림 버튼을 보여줄지 (PICK 인플루언서 + 아직 안 끝난 공구)
 // 알림 버튼을 보여줄지 판정
 //  - PICK 인플루언서여야 하고
@@ -1642,12 +1792,15 @@ function openModal(d) {
     }
   }
   if(al) al.style.display = canAlarm(d, isPick, isEnded(d), dt) ? 'block' : 'none';
+  updatePushBtn(d);
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(e){if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('open');}
 (function(){
   var cb = document.getElementById('m-cal');
   if(cb){ cb.innerHTML = ICON_CAL + '캘린더 저장'; cb.addEventListener('click', saveToCalendar); }
+  var pb = document.getElementById('m-push');
+  if(pb){ pb.innerHTML = ICON_BELL + '알림 받기'; pb.addEventListener('click', pushAlarmClick); }
   var lb = document.getElementById('m-alarm-label');
   if(lb) lb.innerHTML = ICON_STAR + '<span>공구모아 PICK 전용</span>';
 })();
@@ -2476,7 +2629,9 @@ var deferredPrompt = null;
 
 if('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
+    navigator.serviceWorker.register('/sw.js').then(function(){
+      if(typeof loadPushKeys === 'function') loadPushKeys();
+    })['catch'](function(){});
   });
 }
 
@@ -2583,10 +2738,12 @@ var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
     <h2 style="font-size:16px;font-weight:700;margin-bottom:1rem">개인정보처리방침</h2>
     <div style="font-size:13px;color:var(--ink2);line-height:1.8">
       <p><strong>(주) 스테이프레시</strong>는 공동구매 일정 정보 제공 서비스 운영을 위해 아래와 같이 최소한의 개인정보를 수집합니다.</p><br>
-      <p><strong>1. 수집 항목</strong><br>· 인플루언서 제출 폼: 닉네임, 인스타그램 아이디, 공구 일정 정보<br>· 인플루언서 공개 게시물: 공구 일정 정보 (상품명, 날짜)</p><br>
-      <p><strong>2. 수집 목적</strong><br>공동구매 일정 홈페이지 게재 및 정보 공유</p><br>
-      <p><strong>3. 보유 기간</strong><br>서비스 운영 기간 동안 보유 후 파기</p><br>
-      <p><strong>4. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
+      <p><strong>1. 수집 항목</strong><br>· 인플루언서 제출 폼: 닉네임, 인스타그램 아이디, 공구 일정 정보<br>· 인플루언서 공개 게시물: 공구 일정 정보 (상품명, 날짜)<br>· 오픈 알림(웹푸시) 신청 시: 브라우저가 자동으로 발급한 알림 수신 주소와 암호키, 신청한 공구 정보, 알림 예정 시각<br><span style="color:var(--ink3)">※ 이름·연락처·이메일 등 이용자를 직접 식별할 수 있는 정보는 수집하지 않습니다.<br>※ &quot;캘린더 저장&quot; 기능은 이용자 기기 안에서 처리되며, 수집되는 정보가 없습니다.</span></p><br>
+      <p><strong>2. 수집 목적</strong><br>· 공동구매 일정 홈페이지 게재 및 정보 공유<br>· 이용자가 신청한 공구의 오픈 시각에 알림 발송</p><br>
+      <p><strong>3. 보유 및 파기</strong><br>· 공구 일정 정보: 서비스 운영 기간 동안 보유 후 파기<br>· 알림 수신 정보: 해당 알림을 발송한 뒤 파기합니다. 이용자가 알림을 끄거나 브라우저 알림 권한을 해제한 경우 즉시 파기합니다.</p><br>
+      <p><strong>4. 처리 위탁 및 국외 이전</strong><br>알림 발송을 위해 아래와 같이 처리를 위탁합니다.<br>· 수탁자: Cloudflare, Inc. (미국) — 알림 수신 정보의 보관 및 발송 처리<br>· 알림이 전달되는 과정에서 이용자가 사용하는 브라우저 제조사의 푸시 서버(Google, Apple 등)를 경유하며, 알림 내용은 암호화되어 전달됩니다.<br>이용자는 국외 이전을 거부할 수 있으며, 이 경우 오픈 알림을 신청하지 않으시면 됩니다.</p><br>
+      <p><strong>5. 이용자의 권리</strong><br>신청한 알림은 언제든지 끌 수 있습니다. 공구 상세 창에서 &quot;알림 켜짐&quot; 버튼을 다시 누르거나, 브라우저·휴대폰 설정에서 공구모아 알림 권한을 해제하시면 됩니다.</p><br>
+      <p><strong>6. 문의</strong><br>카카오 오픈채팅: 제휴·광고 문의 채널</p><br>
       <p style="color:var(--ink3);font-size:12px">대표자: 이현지 &middot; 사업자등록번호: 131-86-22753</p>
     </div>
   </div>
@@ -2611,7 +2768,7 @@ var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 <script>
 (function(){
   // 공구모아 PICK 인플루언서 (랜덤 순서)
-  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["유누유노맘", "yunu_uno"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["강둥맘", "kkang_twins_"], ["달콤맘", "dalkom__mom"], ["미대엄마", "artist._.mom"], ["젤리또리", "jelly_ddori"]];
+  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["지민맘", "ji__minimi"], ["젤리또리", "jelly_ddori"]];
   var ig = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="url(#pickIgGrad)" stroke-width="2.1"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="1.3" fill="url(#pickIgGrad)" stroke="none"/></svg>';
   var a = PICK_INF.slice();
   for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
