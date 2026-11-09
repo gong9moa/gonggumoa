@@ -425,6 +425,11 @@ tbody tr:hover{background:var(--bg)}
 .row-alarm:active{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .row-alarm.saved{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .row-alarm+.card-date{margin-left:0}
+/* 지난 공구 보기 버튼 */
+.show-ended-row td{padding:4px 0 2px;border:0;background:transparent}
+.show-ended-btn{width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .12s}
+.show-ended-btn:active{background:var(--surface2)}
+.show-ended-note{text-align:center;font-size:11px;color:var(--ink3);padding:7px 0 2px;line-height:1.5}
 @media(max-width:400px){.row-alarm{padding:3px 8px;font-size:10px}}
 .ended-badge{background:var(--surface2);color:var(--ink3)}
 .today-badge{background:var(--accent-light);color:var(--accent)}
@@ -1144,7 +1149,16 @@ var DATA = [];
 // (기본 데이터는 이제 FORM_PROXY(구글폼 연동 시트)에서 모두 받아와요.
 //  예전에 쓰던 별도 BASE 데이터 로딩은 제거했어요.)
 
-var filters = {cat:'전체', sub:'전체', today:false, todayEnd:false, active:false};
+var filters = {cat:'전체', sub:'전체', today:false, todayEnd:false, active:false, showEnded:false};
+// 지난 공구를 숨길지 판단.
+//  - 기본은 숨김 (목록이 4천 건까지 쌓여서 아이패드·구형폰이 버벅였어요)
+//  - "지난 공구 보기"를 누르면 보여주고
+//  - 검색 중에는 지난 공구도 찾아야 하니까 항상 보여줘요
+function isHidingEnded(){
+  var qEl = document.getElementById('q');
+  var qv = qEl ? stripInvisible(qEl.value).trim() : '';
+  return !filters.showEnded && !qv;
+}
 var calY, calM;
 var TODAY = new Date();
 TODAY.setHours(0,0,0,0);
@@ -1244,10 +1258,12 @@ function stripInvisible(s){
 
 function getFiltered() {
   var q=stripInvisible(document.getElementById('q').value).toLowerCase();
+  var hideEnded=isHidingEnded();
   var res=DATA.filter(function(d) {
     var dt=pd(d.date);
     if(filters.today&&(!dt||dt.getTime()!==TODAY.getTime())) return false;
     if(filters.active&&isEnded(d)) return false;
+    if(hideEnded&&isEnded(d)) return false;
     if(filters.todayEnd){
       var end=getEndDate(d); if(!end) return false;
       end=new Date(end); end.setHours(0,0,0,0);
@@ -1346,6 +1362,17 @@ function render() {
       +'<span class="card-date'+(isT?' today':isS?' soon':'')+'">&thinsp;'+ds+(endDs?'<span style="font-size:10px;font-weight:400;color:var(--ink3)">'+endDs+'</span>':'')+' </span>'+ddh
       +'</div><div class="card-row2"><span class="item-name">'+(d.name||'—')+vipBadge+'</span>'
       +'<span class="card-inf">'+infh+'</span></div></td></tr>';
+  }
+  // 지난 공구를 숨기고 있으면 맨 아래에 "지난 공구 보기" 버튼
+  if(isHidingEnded()){
+    var endedN=0;
+    for(var ei=0;ei<DATA.length;ei++) if(isEnded(DATA[ei])) endedN++;
+    if(endedN>0){
+      // 숫자는 지난 공구까지 포함한 전체 건수로 표시
+      html+='<tr class="show-ended-row"><td><button type="button" id="showEndedBtn" class="show-ended-btn">'
+        +'지난 공구 포함 '+DATA.length.toLocaleString()+'건 보기</button>'
+        +'<div class="show-ended-note">지난 공구가 많아서 기본 화면에서는 숨겨뒀어요</div></td></tr>';
+    }
   }
   tb.innerHTML=html;
   // 성능: 행마다 이벤트 다는 대신 tbody에 위임 1개만 (window._renderedRows로 항목 참조)
@@ -1508,7 +1535,7 @@ function alarmTitle(d){
 }
 function alarmBody(d){
   var lines = [];
-  lines.push((d.inf||'인플루언서')+' 공구가 열려요.');
+  lines.push((d.name||'공구')+' 공구가 열려요.');
   if(!hasOpenTime(d)) lines.push('(오픈 시각이 확정되지 않아 오전 '+ALARM_DEFAULT_HOUR+'시로 잡았어요)');
   lines.push('');
   var ip = inpockUrlFor(d);
@@ -2078,6 +2105,13 @@ function loadFormData() { loadFormDataChunk(0); }
       // 알림 버튼을 누른 경우엔 상세 팝업을 열지 않음
       var ab = e.target.closest('.row-alarm');
       if(ab){ e.stopPropagation(); rowAlarmClick(+ab.getAttribute('data-alarm'), ab); return; }
+      // 지난 공구 보기
+      if(e.target.closest('#showEndedBtn')){
+        filters.showEnded = true;
+        render();
+        if(typeof gtag==='function') gtag('event','show_ended_deals');
+        return;
+      }
       var tr = e.target.closest('tr[data-idx]');
       if(!tr) return;
       var idx = +tr.getAttribute('data-idx');
@@ -2768,7 +2802,7 @@ var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 <script>
 (function(){
   // 공구모아 PICK 인플루언서 (랜덤 순서)
-  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["지민맘", "ji__minimi"], ["젤리또리", "jelly_ddori"]];
+  var PICK_INF = [["끼끼맘", "my.77l77l"], ["아보카도하", "avocado_ha_"], ["건후맘", "ggumi_geonhu"], ["현브로맘", "hyun._.brother"], ["미미언니", "mimimiso_"], ["이현맘", "ihyeon_mom_251125"], ["약엄치빠", "yakmom_dentdad"], ["지민맘", "ji__minimi"], ["미국이맘", "ameri._.mom"], ["젤리또리", "jelly_ddori"]];
   var ig = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="url(#pickIgGrad)" stroke-width="2.1"><rect x="2" y="2" width="20" height="20" rx="6"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.5" cy="6.5" r="1.3" fill="url(#pickIgGrad)" stroke="none"/></svg>';
   var a = PICK_INF.slice();
   for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
