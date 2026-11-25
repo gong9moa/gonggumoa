@@ -645,6 +645,13 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .kw:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
 a.kw{text-decoration:none}
 .kw-all{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
+.gg-search{margin-bottom:10px}
+.gg-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px;scrollbar-width:none}
+.gg-row::-webkit-scrollbar{display:none}
+.gg-init .chip{min-width:34px;text-align:center;padding:5px 9px}
+.kw b{color:var(--accent);font-weight:800;margin-left:4px;font-size:12px}
+.gg-empty{font-size:13px;color:var(--ink3);padding:6px 2px}
+.gg-more{width:100%;margin-top:10px;padding:9px;border:1px solid var(--border);background:var(--bg);border-radius:var(--radius);font-size:13px;color:var(--navy);font-weight:700;cursor:pointer;font-family:inherit}
 /* Q&A 팝업 */
 .qna-pop-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:24px}
 .qna-pop-bg.show{display:flex}
@@ -839,7 +846,20 @@ a.kw{text-decoration:none}
 
   <!-- 내가찾던공구 (자주 묻는 공구 Q&A) 뷰 -->
   <div id="v-qna" class="view">
-    <h2 class="qna-sec-title">🔍 이번 달 자주 묻는 공구 정보</h2>
+    <h2 class="qna-sec-title">📚 키워드·브랜드별 공구 모음</h2>
+    <div class="qna-sec-sub">찾는 공구를 검색하거나 분야·ㄱㄴㄷ으로 골라보세요. 숫자는 지금 진행 중·예정인 공구 수예요.</div>
+    <div class="kw-wrap gg-wrap">
+      <div class="search-box gg-search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink3)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="ggQ" type="search" placeholder="예) 칼마디, 전집, 뉴코코맘" oninput="ggRender()">
+      </div>
+      <div class="gg-row" id="ggSubs"></div>
+      <div class="gg-row gg-init" id="ggInits"></div>
+      <div class="kw-list" id="ggList"><a class="kw" href="/gonggu/%EC%98%81%EC%96%91%EC%A0%9C/">영양제 추천</a><a class="kw" href="/gonggu/%EC%B9%BC%EB%A7%88%EB%94%94/">칼마디</a><a class="kw" href="/gonggu/%EC%9C%A0%EC%82%B0%EA%B7%A0/">아기 유산균</a><a class="kw" href="/gonggu/%EC%98%A4%EB%A9%94%EA%B0%803/">오메가3</a><a class="kw" href="/gonggu/%EB%B9%84%ED%83%80%EB%AF%BC/">아기 비타민</a><a class="kw" href="/gonggu/%EC%B2%A0%EB%B6%84/">철분제</a><a class="kw" href="/gonggu/%EB%B0%B0%EB%8F%84%EB%9D%BC%EC%A7%80%EC%A6%99/">배도라지즙</a><a class="kw" href="/gonggu/%EC%9D%B4%EC%9C%A0%EC%8B%9D/">이유식</a><a class="kw" href="/gonggu/%EC%95%84%EA%B8%B0%EA%B3%BC%EC%9E%90/">아기과자</a><a class="kw" href="/gonggu/%EB%B9%A8%EB%8C%80%EC%BB%B5/">빨대컵</a><a class="kw" href="/gonggu/%EA%B7%B8%EB%A6%BC%EC%B1%85/">그림책</a><a class="kw" href="/gonggu/%EC%82%AC%EC%9A%B4%EB%93%9C%EB%B6%81/">사운드북</a><a class="kw" href="/gonggu/%EC%A0%84%EC%A7%91/">전집</a><a class="kw" href="/gonggu/%ED%9A%8C%EC%A0%84%EC%B1%85%EC%9E%A5/">회전책장</a><a class="kw" href="/gonggu/%EA%B5%90%EA%B5%AC/">교구</a><a class="kw" href="/gonggu/%EB%B8%94%EB%9F%AD/">블럭</a><a class="kw" href="/gonggu/%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%81%AC/">트라이크</a><a class="kw" href="/gonggu/%ED%82%A5%EB%B3%B4%EB%93%9C/">킥보드</a><a class="kw" href="/gonggu/%EC%B9%B4%EC%8B%9C%ED%8A%B8/">카시트</a><a class="kw" href="/gonggu/%EC%9C%A0%EB%AA%A8%EC%B0%A8/">유모차</a><a class="kw" href="/gonggu/%EB%82%B4%EB%B3%B5/">내복</a><a class="kw" href="/gonggu/%EA%B0%80%EC%8A%B5%EA%B8%B0/">가습기</a><a class="kw" href="/gonggu/%EC%B2%AD%EC%86%8C%EA%B8%B0/">청소기</a><a class="kw" href="/gonggu/%EC%84%B8%ED%83%81%EC%84%B8%EC%A0%9C/">세탁세제</a><a class="kw kw-all" href="/gonggu/">전체 보기 →</a></div>
+      <button class="gg-more" id="ggMore" onclick="ggShowAll=true;ggRender()" style="display:none"></button>
+    </div>
+
+    <h2 class="qna-sec-title" style="margin-top:26px">🔍 이번 달 자주 묻는 공구 정보</h2>
     <div class="qna-sec-sub">많이 찾으시는 공구예요. 눌러서 일정을 확인해보세요!</div>
     <div id="qnaList">
       <div class="faq-item">
@@ -1088,38 +1108,6 @@ a.kw{text-decoration:none}
         <span class="kw" data-key="닌자" onclick="openQnaPop(this)">닌자</span>
         <span class="kw" data-key="아이팜" onclick="openQnaPop(this)">아이팜</span>
         <span class="kw" data-key="꼬메모이" onclick="openQnaPop(this)">꼬메모이</span>
-      </div>
-    </div>
-
-    <h2 class="qna-sec-title" style="margin-top:26px">📚 키워드별 공구 모음</h2>
-    <div class="qna-sec-sub">지금 진행 중인 공구를 키워드·브랜드별로 모아봤어요. 매일 아침 업데이트돼요!</div>
-    <div class="kw-wrap">
-      <div class="kw-list">
-        <a class="kw" href="/gonggu/%EC%98%81%EC%96%91%EC%A0%9C/">영양제 추천</a>
-        <a class="kw" href="/gonggu/%EC%B9%BC%EB%A7%88%EB%94%94/">칼마디</a>
-        <a class="kw" href="/gonggu/%EC%9C%A0%EC%82%B0%EA%B7%A0/">아기 유산균</a>
-        <a class="kw" href="/gonggu/%EC%98%A4%EB%A9%94%EA%B0%803/">오메가3</a>
-        <a class="kw" href="/gonggu/%EB%B9%84%ED%83%80%EB%AF%BC/">아기 비타민</a>
-        <a class="kw" href="/gonggu/%EC%B2%A0%EB%B6%84/">철분제</a>
-        <a class="kw" href="/gonggu/%EB%B0%B0%EB%8F%84%EB%9D%BC%EC%A7%80%EC%A6%99/">배도라지즙</a>
-        <a class="kw" href="/gonggu/%EC%9D%B4%EC%9C%A0%EC%8B%9D/">이유식</a>
-        <a class="kw" href="/gonggu/%EC%95%84%EA%B8%B0%EA%B3%BC%EC%9E%90/">아기과자</a>
-        <a class="kw" href="/gonggu/%EB%B9%A8%EB%8C%80%EC%BB%B5/">빨대컵</a>
-        <a class="kw" href="/gonggu/%EA%B7%B8%EB%A6%BC%EC%B1%85/">그림책</a>
-        <a class="kw" href="/gonggu/%EC%82%AC%EC%9A%B4%EB%93%9C%EB%B6%81/">사운드북</a>
-        <a class="kw" href="/gonggu/%EC%A0%84%EC%A7%91/">전집</a>
-        <a class="kw" href="/gonggu/%ED%9A%8C%EC%A0%84%EC%B1%85%EC%9E%A5/">회전책장</a>
-        <a class="kw" href="/gonggu/%EA%B5%90%EA%B5%AC/">교구</a>
-        <a class="kw" href="/gonggu/%EB%B8%94%EB%9F%AD/">블럭</a>
-        <a class="kw" href="/gonggu/%ED%8A%B8%EB%9D%BC%EC%9D%B4%ED%81%AC/">트라이크</a>
-        <a class="kw" href="/gonggu/%ED%82%A5%EB%B3%B4%EB%93%9C/">킥보드</a>
-        <a class="kw" href="/gonggu/%EC%B9%B4%EC%8B%9C%ED%8A%B8/">카시트</a>
-        <a class="kw" href="/gonggu/%EC%9C%A0%EB%AA%A8%EC%B0%A8/">유모차</a>
-        <a class="kw" href="/gonggu/%EB%82%B4%EB%B3%B5/">내복</a>
-        <a class="kw" href="/gonggu/%EA%B0%80%EC%8A%B5%EA%B8%B0/">가습기</a>
-        <a class="kw" href="/gonggu/%EC%B2%AD%EC%86%8C%EA%B8%B0/">청소기</a>
-        <a class="kw" href="/gonggu/%EC%84%B8%ED%83%81%EC%84%B8%EC%A0%9C/">세탁세제</a>
-        <a class="kw kw-all" href="/gonggu/">키워드·브랜드 전체 보기 →</a>
       </div>
     </div>
   </div>
@@ -1872,7 +1860,7 @@ function switchTab(v,btn){
   document.getElementById('v-'+v).classList.add('on');
   if(v==='cal')renderCal();
   if(v==='live')renderLive();
-  if(v==='qna')renderQna();
+  if(v==='qna'){renderQna();ggLoad();}
   if(v==='stamp'&&typeof renderStamp==='function')renderStamp();
   if(typeof gtag==='function'){
     gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
@@ -2272,6 +2260,56 @@ function applyQnaSched(){
 }
 
 // Q&A 탭 첫 진입 시 초기화
+
+// ── 키워드·브랜드별 공구 모음 (내가찾던공구 탭 맨 위) ──
+var GG_DATA = null, ggSub = '전체', ggInit = '전체', ggShowAll = false;
+var GG_INITS = ['전체','ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','A-Z'];
+function ggInitial(str){
+  var ch = String(str||'').trim().charAt(0); var c = ch.charCodeAt(0);
+  if(c>=0xAC00 && c<=0xD7A3){
+    var L = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'][Math.floor((c-0xAC00)/588)];
+    return {'ㄲ':'ㄱ','ㄸ':'ㄷ','ㅃ':'ㅂ','ㅆ':'ㅅ','ㅉ':'ㅈ'}[L] || L;
+  }
+  return /[a-z0-9]/i.test(ch) ? 'A-Z' : '';
+}
+function ggLoad(){
+  if(GG_DATA) return;
+  fetch('/gonggu/index.json').then(function(r){return r.json();}).then(function(j){
+    GG_DATA = j.items || [];
+    var cnt = {};
+    GG_DATA.forEach(function(d){ if(d.s) cnt[d.s]=(cnt[d.s]||0)+1; });
+    var subs = ['전체','키워드'].concat(Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}));
+    document.getElementById('ggSubs').innerHTML = subs.map(function(x){
+      return '<span class="chip'+(x===ggSub?' on':'')+'" onclick="ggSub=\''+x+'\';ggShowAll=false;ggRender()">'+qnaEsc(x)+'</span>';
+    }).join('');
+    ggRender();
+  }).catch(function(e){ console.log('키워드 목록 로드 실패', e); });
+}
+function ggRender(){
+  if(!GG_DATA) return;
+  var q = stripInvisible(document.getElementById('ggQ').value).replace(/\s/g,'').toLowerCase();
+  document.querySelectorAll('#ggSubs .chip').forEach(function(c){ c.classList.toggle('on', c.textContent===ggSub); });
+  document.getElementById('ggInits').innerHTML = GG_INITS.map(function(x){
+    return '<span class="chip'+(x===ggInit?' on':'')+'" onclick="ggInit=\''+x+'\';ggShowAll=false;ggRender()">'+x+'</span>';
+  }).join('');
+  var list = GG_DATA.filter(function(d){
+    if(ggSub==='키워드' && !d.k) return false;
+    if(ggSub!=='전체' && ggSub!=='키워드' && d.s!==ggSub) return false;
+    if(ggInit!=='전체' && ggInitial(d.t)!==ggInit) return false;
+    if(q && (d.t+d.n).replace(/\s/g,'').toLowerCase().indexOf(q)<0) return false;
+    return true;
+  });
+  // 검색·필터가 없으면 키워드 먼저, 그다음 진행 중 많은 순
+  list.sort(function(a,b){ return (ggSub==='전체'&&!q&&ggInit==='전체' ? b.k-a.k : 0) || b.c-a.c || a.t.localeCompare(b.t,'ko'); });
+  var LIMIT = 40, shown = ggShowAll ? list : list.slice(0, LIMIT);
+  var el = document.getElementById('ggList');
+  el.innerHTML = shown.length ? shown.map(function(d){
+    return '<a class="kw" href="/gonggu/'+encodeURIComponent(d.n)+'/">'+qnaEsc(d.t)+(d.c?'<b>'+d.c+'</b>':'')+'</a>';
+  }).join('') : '<div class="gg-empty">찾는 공구가 아직 없어요. 상단 검색창에서 전체 일정을 검색해보세요!</div>';
+  var more = document.getElementById('ggMore');
+  more.style.display = list.length>LIMIT && !ggShowAll ? 'block' : 'none';
+  more.textContent = '더보기 (' + (list.length-LIMIT) + '개 더)';
+}
 var qnaInited = false;
 function renderQna(){
   if(!qnaInited){

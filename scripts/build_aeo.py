@@ -413,7 +413,7 @@ def main():
         stats.append((n, live, subs[n]))
         urls.append(path)
 
-    kstats = []
+    kstats, ksub = [], {}
     for k in kws:
         n = k["name"]
         if not kwitems[n]:
@@ -427,9 +427,16 @@ def main():
         os.makedirs(out, exist_ok=True)
         open(os.path.join(out, "index.html"), "w").write(doc)
         kstats.append((n, kwtitle[n], live))
+        c = collections.Counter(d["sub"] for d in kwitems[n] if d["sub"])
+        ksub[n] = k.get("sub") or (c.most_common(1)[0][0] if c else "")
         urls.append(path)
 
     open(os.path.join(ROOT, "gonggu", "index.html"), "w").write(index_page(stats, kstats))
+
+    # 홈페이지 '내가찾던공구' 탭이 읽어가는 목록 (필터·검색용)
+    lst = [{"n": n, "t": t, "k": 1, "s": ksub.get(n, ""), "c": c} for n, t, c in kstats]
+    lst += [{"n": n, "t": n, "k": 0, "s": sub, "c": c} for n, c, sub in stats]
+    json.dump({"updated": TODAY.isoformat(), "items": lst}, open(os.path.join(ROOT, "gonggu", "index.json"), "w"), ensure_ascii=False)
 
     # 사이트맵
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
