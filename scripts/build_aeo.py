@@ -102,10 +102,18 @@ def kdate(dt):
 
 # ---------------- 정리 ----------------
 
+INVISIBLE = re.compile("[\u200B-\u200D\u2060\uFEFF]")   # 홈페이지 stripInvisible()과 동일 (워터마크 제거)
+
+
+def clean(v):
+    return INVISIBLE.sub("", str(v or ""))
+
+
 def norm_items(raw):
     out, seen = [], set()
     for d in raw:
-        name = re.sub(r"\s+", " ", str(d.get("name") or "")).strip()
+        d = {k: clean(v) for k, v in d.items()}
+        name = re.sub(r"\s+", " ", d.get("name") or "").strip()
         o = pdate(d.get("date"))
         if not name or not o:
             continue
@@ -434,7 +442,7 @@ def main():
     live_list = sorted([s for s in stats if s[1]], key=lambda s: -s[1])
     llms = [f"# 공구모아 (gonggumoa.com)", "",
             "> 인스타그램 인플루언서 공동구매(공구) 일정을 매일 모아 보여주는 서비스. "
-            "브랜드별 '공구 언제?' 페이지에 진행 중·오픈 예정·최근 공구 일정이 정리되어 있습니다.", "",
+            "키워드별(영양제·칼마디·전집 등)·브랜드별 페이지에 진행 중·오픈 예정·최근 공구 일정이 정리되어 있습니다.", "",
             f"업데이트: {TODAY.isoformat()}", "", "## 키워드별 공구 모음"]
     llms += [f"- [{t} 공구]({SITE}{slug_url(n)}): 진행 중·예정 {c}건" for n, t, c in kstats]
     llms += ["", "## 브랜드별 공구 일정", f"- [전체 목록]({SITE}/gonggu/)"]
