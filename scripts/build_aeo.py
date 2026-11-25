@@ -155,11 +155,11 @@ CSS = """
 body{font-family:"Pretendard",-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:15px}
 a{color:var(--navy)}
 .wrap{max-width:720px;margin:0 auto;padding:20px 16px 48px}
-header{background:var(--navy);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
-.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
-.logo-mark{width:34px;height:34px;border-radius:50%;background:var(--navy-dark);border:1.5px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:9px;line-height:1.05;text-align:center}
-.logo-text{font-weight:900;font-size:17px;color:#fff;letter-spacing:-.5px}
-.hdr-link{font-size:12px;font-weight:700;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.45);border-radius:20px;padding:5px 12px}
+header{background:var(--bg);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo img{height:22px}
+.logo span{font-size:10px;color:#8a847c}
+.hdr-link{font-size:12px;font-weight:700;color:var(--navy);text-decoration:none;border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:5px 12px}
 .hero{background:var(--navy-dark);padding:.55rem 16px;font-size:12px;color:rgba(255,255,255,.8)}
 .crumb{font-size:12px;color:var(--ink2);margin-bottom:10px}
 .crumb a{color:var(--ink2);text-decoration:none}
@@ -217,7 +217,7 @@ def page(title, desc, path, body, ld):
 {"".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in ld)}
 </head>
 <body>
-<header><a class="logo" href="/"><div class="logo-mark">공구<br>모아</div><span class="logo-text">공구모아</span></a><a class="hdr-link" href="/gonggu/">키워드·브랜드별 공구 ↗</a></header>
+<header><a class="logo" href="/"><img src="/logo-gonggumoa.png" alt="공구모아"><span>공구정보&amp;핫딜 공유</span></a><a class="hdr-link" href="/gonggu/">키워드·브랜드별 공구</a></header>
 <div class="hero">인스타 공구 일정, 매일 아침 모아서 알려드려요</div>
 <div class="wrap">
 {body}
@@ -413,7 +413,7 @@ def main():
         stats.append((n, live, subs[n]))
         urls.append(path)
 
-    kstats = []
+    kstats, ksub = [], {}
     for k in kws:
         n = k["name"]
         if not kwitems[n]:
@@ -427,9 +427,16 @@ def main():
         os.makedirs(out, exist_ok=True)
         open(os.path.join(out, "index.html"), "w").write(doc)
         kstats.append((n, kwtitle[n], live))
+        c = collections.Counter(d["sub"] for d in kwitems[n] if d["sub"])
+        ksub[n] = k.get("sub") or (c.most_common(1)[0][0] if c else "")
         urls.append(path)
 
     open(os.path.join(ROOT, "gonggu", "index.html"), "w").write(index_page(stats, kstats))
+
+    # 홈페이지 '내가찾던공구' 탭이 읽어가는 목록 (필터·검색용)
+    lst = [{"n": n, "t": t, "k": 1, "s": ksub.get(n, ""), "c": c} for n, t, c in kstats]
+    lst += [{"n": n, "t": n, "k": 0, "s": sub, "c": c} for n, c, sub in stats]
+    json.dump({"updated": TODAY.isoformat(), "items": lst}, open(os.path.join(ROOT, "gonggu", "index.json"), "w"), ensure_ascii=False)
 
     # 사이트맵
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
