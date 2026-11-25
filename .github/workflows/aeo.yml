@@ -1,0 +1,27 @@
+name: 브랜드별 공구 페이지 매일 갱신
+
+on:
+  schedule:
+    - cron: "37 21 * * *"   # 매일 한국시간 오전 6시 37분
+  workflow_dispatch:         # Actions 탭에서 수동 실행 버튼
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 페이지 만들기
+        run: python3 scripts/build_aeo.py
+      - name: 바뀐 내용 올리기
+        run: |
+          git config user.name "gonggumoa-bot"
+          git config user.email "bot@gonggumoa.com"
+          git add gonggu sitemap.xml llms.txt
+          git diff --cached --quiet || git commit -m "브랜드별 공구 페이지 자동 갱신 $(date +%F)"
+          git push

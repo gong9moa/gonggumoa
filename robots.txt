@@ -20,6 +20,22 @@ Allow: /
 User-agent: Daumoa
 Allow: /
 
+# AI 검색(챗GPT·클로드·퍼플렉시티 등)은 브랜드별 공구 페이지와 안내 파일만 허용
+# (메인 일정 데이터는 계속 차단)
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot
+Allow: /gonggu/
+Allow: /llms.txt
+Disallow: /
+
 # 그 외 자동화된 접근(크롤러/스크래퍼)은 전체 차단
 User-agent: *
 Disallow: /
