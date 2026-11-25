@@ -433,6 +433,18 @@ def main():
 
     open(os.path.join(ROOT, "gonggu", "index.html"), "w").write(index_page(stats, kstats))
 
+    # 홈페이지 '내가찾던공구' Q&A 일정 자동 갱신용 (브랜드 → "M/D 인플루언서 (아이디) 상품명" 줄들)
+    qauto = {}
+    for b in brands:
+        n = b["name"]
+        lst_ = per[n]
+        live_ = sorted([d for d in lst_ if d["end"] >= TODAY], key=lambda d: d["open"])[:4]
+        rows_ = live_ or sorted(lst_, key=lambda d: d["open"], reverse=True)[:2]
+        if rows_:
+            qauto[n] = "\n".join(
+                f"{d['open'].month}/{d['open'].day}~{d['end'].month}/{d['end'].day} {d['inf'] or d['insta']} ({d['insta']}) {d['name']}".strip() for d in rows_)
+    json.dump({"updated": TODAY.isoformat(), "sched": qauto}, open(os.path.join(ROOT, "gonggu", "qna.json"), "w"), ensure_ascii=False)
+
     # 홈페이지 '내가찾던공구' 탭이 읽어가는 목록 (필터·검색용)
     lst = [{"n": n, "t": t, "k": 1, "s": ksub.get(n, ""), "c": c} for n, t, c in kstats]
     lst += [{"n": n, "t": n, "k": 0, "s": sub, "c": c} for n, c, sub in stats]

@@ -644,6 +644,8 @@ tr.vip-row:not(.ended) .card-date{color:#1d4ed8}
 .kw{font-size:13px;color:var(--navy);background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .12s}
 .kw:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
 a.kw{text-decoration:none}
+.qna-more{display:inline-block;margin:2px 0 8px;font-size:12.5px;font-weight:700;color:var(--navy);text-decoration:none}
+.qna-more:hover{text-decoration:underline}
 .kw-all{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:700}
 .gg-search{margin-bottom:10px}
 .gg-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px;scrollbar-width:none}
@@ -1853,6 +1855,15 @@ function closeModal(e){if(!e||e.target===document.getElementById('modal'))docume
   var lb = document.getElementById('m-alarm-label');
   if(lb) lb.innerHTML = ICON_STAR + '<span>공구모아 PICK 전용</span>';
 })();
+var TAB_PATH = {list:'', cal:'calendar', qna:'qna', pick:'hotdeal'};
+function openTabFromUrl(){
+  var t = new URLSearchParams(location.search).get('tab');
+  if(!t) return;
+  var v = Object.keys(TAB_PATH).filter(function(k){ return TAB_PATH[k]===t || k===t; })[0];
+  if(!v || v==='list') return;
+  var btn = [].slice.call(document.querySelectorAll('.tabs .tab')).filter(function(b){ return (b.getAttribute('onclick')||'').indexOf("'"+v+"'")>-1; })[0];
+  if(btn) switchTab(v, btn);
+}
 function switchTab(v,btn){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
   document.querySelectorAll('.view').forEach(function(el){el.classList.remove('on');});
@@ -1862,6 +1873,11 @@ function switchTab(v,btn){
   if(v==='live')renderLive();
   if(v==='qna'){renderQna();ggLoad();}
   if(v==='stamp'&&typeof renderStamp==='function')renderStamp();
+  if(TAB_PATH.hasOwnProperty(v) && history.replaceState){
+    var u = new URL(location.href);
+    if(TAB_PATH[v]) u.searchParams.set('tab', TAB_PATH[v]); else u.searchParams.delete('tab');
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
+  }
   if(typeof gtag==='function'){
     gtag('event','page_view',{page_title:'공구모아 — '+(v==='cal'?'캘린더':'리스트'),page_location:window.location.href+'#'+v});
   }
@@ -2164,7 +2180,7 @@ function loadQnaSched(){
     .then(function(r){ return r.text(); })
     .then(function(text){
       var m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-      if(!m){ qnaLoaded=true; applyQnaSched(); return; }
+      if(!m){ qnaMergeAuto(); return; }
       var json = JSON.parse(m[1]);
       if(json.table && json.table.rows){
         json.table.rows.forEach(function(row){
@@ -2174,10 +2190,16 @@ function loadQnaSched(){
           if(key) QNA_SCHED[key] = sched;
         });
       }
-      qnaLoaded = true;
-      applyQnaSched();
+      qnaMergeAuto();
     })
-    .catch(function(err){ console.error('Q&A 일정 로딩 실패:', err); qnaLoaded=true; applyQnaSched(); });
+    .catch(function(err){ console.error('Q&A 일정 로딩 실패:', err); qnaMergeAuto(); });
+}
+// 매일 아침 공구 데이터로 자동 갱신되는 일정(/gonggu/qna.json)이 있으면 그걸 우선 사용
+function qnaMergeAuto(){
+  fetch('/gonggu/qna.json').then(function(r){ return r.json(); }).then(function(j){
+    var s = j.sched || {};
+    Object.keys(s).forEach(function(k){ if(s[k]) QNA_SCHED[k] = s[k]; });
+  }).catch(function(){}).then(function(){ qnaLoaded = true; applyQnaSched(); });
 }
 
 // ── 인플루언서별 인포크링크 매핑 (PICK 전용 "구매하러 가기" 버튼) ──
@@ -2227,6 +2249,14 @@ function qnaDdayBadge(line){
   if(!d) return {badge:'', past:false};
   d.setHours(0,0,0,0);
   var today = new Date(); today.setHours(0,0,0,0);
+  // 연도 없는 날짜가 반년 넘게 지났으면 내년 일정으로 봄 (예: 11월에 보는 "1/26")
+  if(today - d > 180*86400000 && !/^\d{4}/.test(String(line).trim())) d.setFullYear(d.getFullYear()+1);
+  // "11/24~11/27" 처럼 마감일이 있으면 기간 안일 때 '진행 중'
+  var rg = String(line).trim().match(/^\d{1,2}\s*[\/.]\s*\d{1,2}\s*~\s*(\d{1,2})\s*[\/.]\s*(\d{1,2})/);
+  if(rg){
+    var e = new Date(d.getFullYear(), +rg[1]-1, +rg[2]); if(e < d) e.setFullYear(e.getFullYear()+1);
+    if(d <= today && today <= e) return {badge:'<span class="dday dday-today">진행 중</span>', past:false};
+  }
   var diff = Math.round((d-today)/86400000);
   if(diff===0) return {badge:'<span class="dday dday-today">오늘 오픈</span>', past:false};
   if(diff>0) return {badge:'<span class="dday dday-soon">D-'+diff+'</span>', past:false};
@@ -2255,6 +2285,9 @@ function applyQnaSched(){
     } else {
       el.textContent = QNA_NO_SCHED;
       el.classList.add('searching');
+    }
+    if(!el.nextElementSibling || !el.nextElementSibling.classList.contains('qna-more')){
+      el.insertAdjacentHTML('afterend', '<a class="qna-more" href="/gonggu/'+encodeURIComponent(key)+'/">'+qnaEsc(key)+' 공구 전체 일정 보기 →</a>');
     }
   });
 }
@@ -2333,6 +2366,9 @@ function openQnaPop(el){
   var html = qnaSchedHtml(sched);
   if(html){ sb.innerHTML = html; sb.classList.remove('searching'); }
   else { sb.textContent = QNA_NO_SCHED; sb.classList.add('searching'); }
+  var mo = document.getElementById('qnaPopMore');
+  if(!mo){ sb.insertAdjacentHTML('afterend','<a class="qna-more" id="qnaPopMore"></a>'); mo = document.getElementById('qnaPopMore'); }
+  mo.href = '/gonggu/'+encodeURIComponent(key)+'/'; mo.textContent = key+' 공구 전체 일정 보기 →';
   document.getElementById('qnaPopBg').classList.add('show');
 }
 function closeQnaPop(){ document.getElementById('qnaPopBg').classList.remove('show'); }
@@ -2608,6 +2644,7 @@ loadPickData();
 loadLiveData();
 loadInpockMap();
 loadQnaSched();
+openTabFromUrl();
 
 
 // ── 출석 스탬프 ──
